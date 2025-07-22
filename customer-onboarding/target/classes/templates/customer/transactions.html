@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Transaction History</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="dashboard-grid" th:data-username="${#authentication.name}">
+
+    <header class="dashboard-header">
+        <h1>Transaction History</h1>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-logout">Logout</button>
+        </form>
+    </header>
+
+    <!-- Sidebar Fragment -->
+    <div th:replace="~{customer/layout :: sidebar}"></div>
+
+    <main class="main-content">
+        <h2 th:if="${accountNumber}">Statement for Account: <strong th:text="${accountNumber}"></strong></h2>
+        
+        <table class="table transaction-table">
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Description</th>
+                    <th class="text-right">Amount (₹)</th>
+                    <th class="text-center">Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(transactions)}">
+                    <td colspan="4" class="text-center" style="padding: 20px;">
+                        You have no transactions yet.
+                    </td>
+                </tr>
+                <tr th:each="tx : ${transactions}">
+                    <td th:text="${#temporals.format(tx.timestamp, 'dd-MMM-yyyy HH:mm:ss')}"></td>
+                    <td>
+                        <span th:if="${tx.fromAccountNumber == accountNumber}">
+                            Fund Transfer To: <strong th:text="${tx.toAccountNumber}"></strong>
+                        </span>
+                        <span th:if="${tx.toAccountNumber == accountNumber}">
+                            Fund Transfer From: <strong th:text="${tx.fromAccountNumber}"></strong>
+                        </span>
+                    </td>
+                    <td class="text-right" th:text="${#numbers.formatDecimal(tx.amount, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td class="text-center">
+                        <span th:if="${tx.fromAccountNumber == accountNumber}" class="badge badge-danger">DEBIT</span>
+                        <span th:if="${tx.toAccountNumber == accountNumber}" class="badge badge-success">CREDIT</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="margin-top: 20px;">
+             <a th:href="@{/customer/dashboard}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </main>
+    
+    <!-- Chatbot JS Fragment -->
+    <th:block th:replace="~{customer/layout :: chatbot-js}"></th:block>
+
+</body>
+</html>

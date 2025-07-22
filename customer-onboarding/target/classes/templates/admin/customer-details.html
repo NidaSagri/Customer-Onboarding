@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Details</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <!-- Page Header -->
+    <h1>Review Details for <span th:text="${customer.fullName}"></span></h1>
+
+    <!-- Personal Information Section -->
+    <div class="details-section">
+        <h3>Personal Information</h3>
+        <p><strong>Customer ID:</strong> <span th:text="${customer.id}"></span></p>
+        <p><strong>Email:</strong> <span th:text="${customer.email}"></span></p>
+        <p><strong>Phone:</strong> <span th:text="${customer.phone}"></span></p>
+        <p><strong>Date of Birth:</strong> <span th:text="${#temporals.format(customer.dob, 'dd-MMM-yyyy')}"></span></p>
+        <p><strong>Address:</strong> <span th:text="${customer.address}"></span></p>
+        <hr>
+        <h3>Identity & KYC</h3>
+        <p><strong>PAN:</strong> <span th:text="${customer.pan}"></span></p>
+        <p><strong>Aadhaar:</strong> <span th:text="${customer.aadhaar}"></span></p>
+        <p><strong>Current KYC Status:</strong> <strong th:text="${customer.kycStatus}"></strong></p>
+    </div>
+
+    <!-- KYC Action Form: Only show if KYC is PENDING -->
+    <form th:if="${customer.kycStatus == T(com.onboarding.model.KycStatus).PENDING}"
+          th:action="@{/admin/customer/{id}/verify(id=${customer.id})}" method="post" class="action-form">
+        <button type="submit" name="approved" value="true" class="btn btn-success">Approve KYC</button>
+        <button type="submit" name="approved" value="false" class="btn btn-danger">Reject KYC</button>
+    </form>
+    
+    <!-- Account Information Section: Only show if an account exists -->
+    <div th:if="${account != null}" class="details-section">
+        <hr>
+        <h3>Account Information</h3>
+        <p><strong>Account Number:</strong> <span th:text="${account.accountNumber}"></span></p>
+        <p><strong>Account Type:</strong> <span th:text="${account.accountType}"></span></p>
+        <p><strong>Balance:</strong> ₹<span th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}"></span></p>
+    </div>
+
+    <!-- Transaction History Section: Only show if transactions exist -->
+    <div th:if="${transactions != null and not #lists.isEmpty(transactions)}" class="details-section">
+        <hr>
+        <h3>Transaction History</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>From Account</th>
+                    <th>To Account</th>
+                    <th>Amount (₹)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="tx : ${transactions}">
+                    <td th:text="${#temporals.format(tx.timestamp, 'dd-MMM-yyyy HH:mm')}"></td>
+                    <td th:text="${tx.fromAccountNumber}"></td>
+                    <td th:text="${tx.toAccountNumber}"></td>
+                    <td th:text="${#numbers.formatDecimal(tx.amount, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td th:text="${tx.status}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Message if account exists but has no transactions -->
+    <div th:if="${account != null and #lists.isEmpty(transactions)}" class="alert alert-info">
+        This account has no transaction history yet.
+    </div>
+
+    <!-- Navigation Link -->
+    <div style="margin-top: 20px;">
+        <a th:href="@{/admin/dashboard}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+</body>
+</html>

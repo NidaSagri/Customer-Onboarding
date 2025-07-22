@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>My Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="dashboard-grid" th:data-username="${#authentication.name}">
+
+    <header class="dashboard-header">
+        <h1>Welcome, <span th:text="${customer.fullName}"></span>!</h1>
+        <form th:action="@{/logout}" method="post"><button type="submit" class="btn btn-logout">Logout</button></form>
+    </header>
+
+    <!-- Sidebar Fragment from layout.html -->
+    <div th:replace="~{customer/layout :: sidebar}"></div>
+
+    <main class="main-content">
+        <h2>Dashboard</h2>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        
+        <div th:if="${account != null}" class="stat-card">
+            <h3>Current Balance</h3>
+            <p class="stat-number">₹<span th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}"></span></p>
+            <small th:text="'Account: ' + ${account.accountNumber}"></small>
+        </div>
+        <div th:if="${account == null}">
+            <div th:if="${kycStatus == 'PENDING'}" class="alert alert-info">Your KYC is pending verification by the admin.</div>
+            <div th:if="${kycStatus == 'REJECTED'}" class="alert alert-danger">Your KYC was rejected. Please contact support.</div>
+            <div th:if="${kycStatus == 'VERIFIED'}" class="alert alert-success">
+                <p>Your KYC is verified! You can now create your savings account.</p>
+                <form th:action="@{/customer/create-account}" method="post"><button type="submit" class="btn">Create Savings Account</button></form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Chatbot JS Fragment from layout.html -->
+    <th:block th:replace="~{customer/layout :: chatbot-js}"></th:block>
+</body>
+</html>
