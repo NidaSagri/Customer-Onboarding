@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Registration</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .upload-group { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .upload-group .form-group { flex-grow: 1; margin-bottom: 0; }
+        .image-preview { width: 100px; height: 60px; border: 1px solid var(--border-color); background-size: cover; background-position: center; border-radius: 8px; background-color: #f8f9fa; }
+        .passport-preview { height: 120px; }
+    </style>
+</head>
+<body>
+<div class="container" style="max-width: 800px;">
+    <div class="logo-container">
+        <img src="https://img.etimg.com/thumb/width-1200,height-900,imgsize-8519,resizemode-75,msid-114568605/markets/stocks/news/oracle-financial-services-shares-in-focus-after-q2-profit-jumps-38-yoy-to-rs-578-crore.jpg" alt="OFSS Bank Logo" />
+    </div>
+    <h2>New Customer Registration</h2>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}" style="background-color: #f8d7da; color: #721c24; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;"></div>
+
+    <form th:action="@{/ui/register}" th:object="${registrationRequest}" method="post">
+        <h3>Personal Details</h3>
+        <div class="form-group">
+            <label for="fullName">Full Name:</label>
+            <input type="text" id="fullName" th:field="*{customer.fullName}" required />
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" th:field="*{customer.email}" required />
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone:</label>
+            <input type="tel" id="phone" th:field="*{customer.phone}" required />
+        </div>
+        <div class="form-group">
+            <label for="dob">Date of Birth:</label>
+            <input type="date" id="dob" th:field="*{customer.dob}" required />
+        </div>
+        <div class="form-group">
+            <label for="address">Address:</label>
+            <input type="text" id="address" th:field="*{customer.address}" required />
+        </div>
+
+        <hr style="margin: 2rem 0;">
+        <h3>Documents</h3>
+        <div class="upload-group">
+            <div class="form-group">
+                <label for="aadhaar">Aadhaar Number:</label>
+                <input type="text" id="aadhaar" th:field="*{customer.aadhaar}" required />
+            </div>
+            <div>
+                <label>Aadhaar Photo:</label>
+                <input type="file" class="form-control" id="aadhaarFile" accept="image/*" required onchange="handleFileUpload(event, 'aadhaarPhotoBase64', 'aadhaarPreview')">
+                <div id="aadhaarPreview" class="image-preview"></div>
+            </div>
+        </div>
+        <div class="upload-group">
+            <div class="form-group">
+                <label for="pan">PAN Number:</label>
+                <input type="text" id="pan" th:field="*{customer.pan}" required />
+            </div>
+            <div>
+                <label>PAN Photo:</label>
+                <input type="file" class="form-control" id="panFile" accept="image/*" required onchange="handleFileUpload(event, 'panPhotoBase64', 'panPreview')">
+                <div id="panPreview" class="image-preview"></div>
+            </div>
+        </div>
+        <div class="form-group">
+             <label>Passport Photo:</label>
+             <input type="file" class="form-control" id="passportFile" accept="image/*" required onchange="handleFileUpload(event, 'passportPhotoBase64', 'passportPreview')">
+             <div id="passportPreview" class="image-preview passport-preview"></div>
+        </div>
+        
+        <hr style="margin: 2rem 0;">
+        <h3>Account & Login</h3>
+        <div class="form-group">
+            <label for="accountType">Account Type to Open:</label>
+            <select id="accountType" th:field="*{accountType}" required>
+                <option value="" disabled selected>-- Select an Account Type --</option>
+                <option value="SAVINGS">Savings Account</option>
+                <option value="CURRENT">Current Account</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" th:field="*{username}" required />
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" th:field="*{password}" required />
+        </div>
+        
+        <input type="hidden" id="aadhaarPhotoBase64" th:field="*{customer.aadhaarPhotoBase64}" />
+        <input type="hidden" id="panPhotoBase64" th:field="*{customer.panPhotoBase64}" />
+        <input type="hidden" id="passportPhotoBase64" th:field="*{customer.passportPhotoBase64}" />
+
+        <button type="submit" class="btn">Register</button>
+    </form>
+    <div class="form-link" style="color: #6c757d;">
+        <p>Already have an account? <a th:href="@{/login}" style="color: var(--primary-red); text-decoration: none; font-weight: 600;">Login here</a></p>
+    </div>
+</div>
+
+<script>
+function handleFileUpload(event, hiddenInputId, previewId) {
+    const file = event.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64String = e.target.result;
+        document.getElementById(hiddenInputId).value = base64String;
+        document.getElementById(previewId).style.backgroundImage = `url('${base64String}')`;
+    };
+    reader.readAsDataURL(file);
+}
+</script>
+</body>
+</html>
