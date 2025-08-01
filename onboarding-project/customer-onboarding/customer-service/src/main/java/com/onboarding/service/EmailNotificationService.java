@@ -82,11 +82,20 @@ public class EmailNotificationService {
             );
         } else { // REJECTED
             subject = "Important: Update on Your KYC Verification with OFSS Bank";
+            
+            // --- THE FIX ---
+            // Use a more detailed email body that includes the reason.
+            String reasonText = (event.getRejectionReason() != null && !event.getRejectionReason().isBlank())
+                    ? "The reason provided was: \"" + event.getRejectionReason() + "\""
+                    : "This may be due to unclear documents or mismatched information.";
+
             body = String.format(
-                "Hello %s,\n\nWe have reviewed your KYC submission and unfortunately, it could not be approved at this time. This may be due to unclear documents or mismatched information.\n\n" +
+                "Hello %s,\n\nWe have reviewed your KYC submission and unfortunately, it could not be approved at this time.\n\n" +
+                "%s\n\n" +
                 "Please contact our support team for further assistance. We apologize for any inconvenience.\n\n" +
                 "Regards,\nThe Onboarding Team",
-                event.getCustomerName()
+                event.getCustomerName(),
+                reasonText
             );
         }
         

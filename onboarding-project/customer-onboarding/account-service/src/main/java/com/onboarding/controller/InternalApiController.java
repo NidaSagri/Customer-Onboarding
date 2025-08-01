@@ -1,5 +1,6 @@
 package com.onboarding.controller;
 
+import com.onboarding.dto.AccountCreationRequest;
 import com.onboarding.dto.AccountDTO; // <-- IMPORT
 import com.onboarding.model.Account;
 import com.onboarding.repository.AccountRepository;
@@ -37,27 +38,18 @@ public class InternalApiController {
         return dto;
     }
 
-    @PostMapping("/create-inactive")
-    public ResponseEntity<?> createInactiveAccount(@RequestBody Map<String, Object> creationData) {
+    @PostMapping("/create-and-activate")
+    public ResponseEntity<?> createAndActivateAccount(@RequestBody AccountCreationRequest request) {
         try {
-            Long customerId = Long.parseLong(creationData.get("customerId").toString());
-            String accountType = creationData.get("accountType").toString();
-            Account account = accountService.createInactiveAccount(customerId, accountType);
-            return ResponseEntity.ok(convertToDto(account)); // <-- Return DTO
+            Account account = accountService.createActiveAccount(request);
+            // We can return the full Account object or a DTO.
+            // For inter-service, returning the entity is fine if it doesn't have complex relationships.
+            return ResponseEntity.ok(account);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to create inactive account: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Failed to create active account: " + e.getMessage());
         }
     }
-
-    @PostMapping("/customer/{customerId}/activate")
-    public ResponseEntity<?> activateAccount(@PathVariable Long customerId) {
-        try {
-            Account account = accountService.activateAccount(customerId);
-            return ResponseEntity.ok(convertToDto(account)); // <-- Return DTO
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Failed to activate account for customer ID " + customerId + ": " + e.getMessage());
-        }
-    }
+    
 
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<AccountDTO> getAccountByCustomerId(@PathVariable Long customerId) {

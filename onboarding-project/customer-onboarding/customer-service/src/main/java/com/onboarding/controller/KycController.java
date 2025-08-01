@@ -1,15 +1,18 @@
 package com.onboarding.controller;
 
 import com.onboarding.service.KycService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/kyc") // This is the base path for all KYC-related APIs
+@RequestMapping("/api/kyc/applications") // <-- Path updated for clarity
 public class KycController {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(KycController.class);
     private final KycService kycService;
 
     public KycController(KycService kycService) {
@@ -17,25 +20,45 @@ public class KycController {
     }
 
     /**
-     * API endpoint for an admin to verify or reject a customer's KYC.
-     * Accessible via: POST /api/kyc/{customerId}/verify
-     * @param customerId The ID of the customer to verify.
-     * @param request A JSON body, e.g., {"isVerified": true}
+     * API endpoint for an admin to process (approve or reject) a KYC Application.
+     * Accessible via: POST /api/kyc/applications/{applicationId}/process
+     * @param applicationId The ID of the KYC Application to process.
+     * @param request A JSON body that must contain "isApproved" (boolean) and
+     *                can optionally contain "rejectionReason" (string) if rejecting.
      * @return A success or error message.
      */
-    @PostMapping("/{customerId}/verify")
-    public ResponseEntity<String> verifyKyc(@PathVariable Long customerId, @RequestBody Map<String, Boolean> request) {
+    @PostMapping("/{applicationId}/process")
+    public ResponseEntity<String> processKycApplication(
+            @PathVariable Long applicationId,
+            @RequestBody Map<String, Object> request) {
+        
+        LOGGER.info("API call received to process KYC application ID: {}", applicationId);
+        
         try {
-            // getOrDefault is a safe way to extract the boolean, defaulting to 'false' if the key is missing.
-            boolean isVerified = request.getOrDefault("isVerified", false);
+            if (!request.containsKey("isApproved") || !(request.get("isApproved") instanceof Boolean)) {
+                return ResponseEntity.badRequest().body("Request body must contain a boolean 'isApproved' field.");
+            }
+
+            boolean isApproved = (Boolean) request.get("isApproved");
             
-            kycService.verifyKyc(customerId, isVerified);
+            String rejectionReason = null;
+            if (!isApproved) {
+                // If rejecting, the reason is mandatory from the API
+                if (!request.containsKey("rejectionReason") || request.get("rejectionReason").toString().isBlank()) {
+                     return ResponseEntity.badRequest().body("A 'rejectionReason' is mandatory when rejecting an application.");
+                }
+                rejectionReason = request.get("rejectionReason").toString();
+            }
             
-            String status = isVerified ? "VERIFIED" : "REJECTED";
-            String responseMessage = "KYC status for customer " + customerId + " successfully updated to " + status;
+            // --- THE FIX: Call the new, correct service method ---
+            kycService.processKycApplication(applicationId, isApproved, rejectionReason);
+            
+            String status = isApproved ? "APPROVED" : "REJECTED";
+            String responseMessage = "KYC Application " + applicationId + " successfully processed with status: " + status;
             return ResponseEntity.ok(responseMessage);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error processing KYC: " + e.getMessage());
+            LOGGER.error("Error processing KYC application ID {}: {}", applicationId, e.getMessage());
+            return ResponseEntity.badRequest().body("Error processing KYC application: " + e.getMessage());
         }
     }
 }

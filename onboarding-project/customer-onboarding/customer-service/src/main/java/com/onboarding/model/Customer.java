@@ -1,10 +1,6 @@
 package com.onboarding.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import java.time.LocalDate;
 
 @Entity
@@ -15,37 +11,70 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Full name is mandatory")
+    // --- Personal Information ---
+    @Column(nullable = false)
     private String fullName;
 
-    @NotBlank(message = "Email is mandatory")
-    @Email(message = "Email should be valid")
-    @Column(unique = true)
+    @Column(nullable = false)
+    private String fatherName;
+
+    @Column(nullable = false)
+    private String motherName;
+
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @NotBlank(message = "Phone number is mandatory")
-    @Pattern(regexp = "^\\d{10}$", message = "Phone number must be 10 digits")
+    @Column(nullable = false)
     private String phone;
     
-    @NotNull(message = "Date of birth is mandatory")
+    @Column(nullable = false)
     private LocalDate dob;
     
-    @NotBlank(message = "Address is mandatory")
+    @Column(nullable = false)
     private String address;
+    
+ // --- NEW DEMOGRAPHIC FIELDS ---
+    @Column(nullable = false) private String gender;
+    @Column(nullable = false) private String maritalStatus;
+    public String getGender() {
+		return gender;
+	}
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+	public String getMaritalStatus() {
+		return maritalStatus;
+	}
+	public void setMaritalStatus(String maritalStatus) {
+		this.maritalStatus = maritalStatus;
+	}
+	public String getNationality() {
+		return nationality;
+	}
+	public void setNationality(String nationality) {
+		this.nationality = nationality;
+	}
+	public String getProfession() {
+		return profession;
+	}
+	public void setProfession(String profession) {
+		this.profession = profession;
+	}
+	@Column(nullable = false) private String nationality;
+    @Column(nullable = false) private String profession;
 
-    @NotBlank(message = "PAN is mandatory")
-    @Column(unique = true)
+    // --- Identity Information ---
+    @Column(nullable = false, unique = true)
     private String pan;
 
-    @NotBlank(message = "Aadhaar is mandatory")
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String aadhaar;
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private KycStatus kycStatus = KycStatus.PENDING;
+    private KycStatus kycStatus; // This will always be VERIFIED for records in this table
     
-    // --- NEW FIELDS FOR IMAGE DATA ---
+    // --- Documents (Base64 Strings) ---
     @Lob
     @Column(name = "aadhaar_photo_base64", columnDefinition = "CLOB")
     private String aadhaarPhotoBase64;
@@ -58,11 +87,20 @@ public class Customer {
     @Column(name = "passport_photo_base64", columnDefinition = "CLOB")
     private String passportPhotoBase64;
 
-    // Getters and Setters for all fields...
+    // --- Relationship to the login User ---
+    // This Customer is referenced by one User. Deleting the User will delete this Customer.
+    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private User user;
+
+    // Getters and Setters for all fields
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getFatherName() { return fatherName; }
+    public void setFatherName(String fatherName) { this.fatherName = fatherName; }
+    public String getMotherName() { return motherName; }
+    public void setMotherName(String motherName) { this.motherName = motherName; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPhone() { return phone; }
@@ -83,4 +121,6 @@ public class Customer {
     public void setPanPhotoBase64(String panPhotoBase64) { this.panPhotoBase64 = panPhotoBase64; }
     public String getPassportPhotoBase64() { return passportPhotoBase64; }
     public void setPassportPhotoBase64(String passportPhotoBase64) { this.passportPhotoBase64 = passportPhotoBase64; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 }
