@@ -2,9 +2,12 @@ package com.onboarding.controller;
 
 import com.onboarding.dto.AccountDTO;
 import com.onboarding.feign.AccountClient;
-import com.onboarding.model.KycApplication; // <-- WORKS WITH KycApplication
-import com.onboarding.service.KycApplicationService; // <-- USES A NEW DEDICATED SERVICE
+import com.onboarding.model.KycApplication;
+import com.onboarding.service.KycApplicationService;
 import com.onboarding.service.KycService;
+// We still need Customer for the edit form model attribute
+import com.onboarding.model.Customer; 
+import com.onboarding.service.CustomerQueryService; // <-- IMPORT NEW SERVICE
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,52 +20,45 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/admin")
 public class AdminController {
 
-    private final KycApplicationService kycApplicationService; // <-- NEW SERVICE
+    private final KycApplicationService kycApplicationService;
     private final KycService kycService;
+    private final CustomerQueryService customerQueryService; // <-- INJECT NEW SERVICE
+    private final AccountClient accountClient;
 
-    // Simplified constructor for the new workflow
-    public AdminController(KycApplicationService kycApplicationService, KycService kycService) {
+    public AdminController(KycApplicationService kycApplicationService, KycService kycService, CustomerQueryService customerQueryService, AccountClient accountClient) {
         this.kycApplicationService = kycApplicationService;
         this.kycService = kycService;
+        this.customerQueryService = customerQueryService;
+        this.accountClient = accountClient;
     }
     
     @GetMapping("/dashboard")
     public String adminDashboard(Model model, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        // Fetches a page of KYC applications instead of Customers
         Page<KycApplication> applicationPage = kycApplicationService.findAllApplications(pageable);
 
-        model.addAttribute("applications", applicationPage); // Pass applications to the view
+        model.addAttribute("applications", applicationPage);
         model.addAttribute("totalApplications", kycApplicationService.countTotalApplications());
         model.addAttribute("pendingKyc", kycApplicationService.countPendingApplications());
-        // You would add other stats if needed
         
-        return "admin/dashboard"; // This will render the admin dashboard
+        // This stat should count final, approved customers
+        model.addAttribute("verifiedCustomers", customerQueryService.countTotalCustomers());
+        
+        return "admin/dashboard";
     }
 
-    // This page is now for viewing an APPLICATION, not a Customer
     @GetMapping("/application/{id}")
     public String applicationDetails(@PathVariable Long id, Model model) {
         KycApplication application = kycApplicationService.findApplicationById(id)
             .orElseThrow(() -> new IllegalArgumentException("Invalid application Id:" + id));
         model.addAttribute("application", application);
-        
-        // No account details to show here yet, as the account hasn't been created.
-        
-        return "admin/application-details"; // We will need a new HTML page for this
+        return "admin/application-details";
     }
     
-    // The verify method now takes an applicationId
     @PostMapping("/application/{id}/verify")
-    public String verifyKyc(
-            @PathVariable("id") Long applicationId,
-            @RequestParam boolean approved,
-            @RequestParam(required = false) String rejectionReason,
-            RedirectAttributes redirectAttributes) {
+    public String verifyKycApplication(@PathVariable("id") Long applicationId, @RequestParam boolean approved, @RequestParam(required = false) String rejectionReason, RedirectAttributes redirectAttributes) {
         try {
-            // --- THE FIX: Call the correct service method ---
             kycService.processKycApplication(applicationId, approved, rejectionReason);
-            
             String status = approved ? "approved and promoted to customer" : "rejected";
             redirectAttributes.addFlashAttribute("message", "Application " + applicationId + " has been " + status + ".");
         } catch (Exception e) {
@@ -71,6 +67,6 @@ public class AdminController {
         return "redirect:/admin/dashboard";
     }
 
-    // We can add delete/edit for KycApplication if needed, but they are less common.
-    // The old Customer-related endpoints are no longer relevant for this controller's primary role.
+    // The edit/delete functions would operate on KycApplication now, not Customer.
+    // For simplicity, we can assume admins cannot edit/delete submitted applications, only process them.
 }

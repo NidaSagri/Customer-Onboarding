@@ -2,7 +2,7 @@ package com.onboarding.controller;
 
 import com.onboarding.dto.CustomerRegistrationRequest;
 import com.onboarding.service.CustomerService;
-import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException; // <-- IMPORT
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import java.util.stream.Collectors;
 
 @Controller
@@ -27,31 +28,28 @@ public class PublicUIController {
 
     @GetMapping("/register")
     public String showRegistrationForm(Model model) {
-        LOGGER.info("Serving the registration page at /ui/register");
         model.addAttribute("registrationRequest", new CustomerRegistrationRequest());
         return "ui/register";
     }
 
     @PostMapping("/register")
     public String processRegistration(@ModelAttribute("registrationRequest") CustomerRegistrationRequest request, RedirectAttributes redirectAttributes) {
-        LOGGER.info("Processing new KYC application for user: {}", request.getUsername());
         try {
-            // --- THE FIX: Call the new, correct service method ---
             customerService.registerKycApplication(request);
-            
-            // --- Update success message to reflect the new workflow ---
-            redirectAttributes.addFlashAttribute("successMessage", "Your application has been submitted successfully! You will receive an email once your KYC is reviewed by the admin.");
+            redirectAttributes.addFlashAttribute("successMessage", "Your application has been submitted! You will be notified via email once it is reviewed.");
             return "redirect:/login";
         } catch (ConstraintViolationException e) {
+            // This is the specific error for database validation (e.g., phone number format)
             String errorMessages = e.getConstraintViolations().stream()
-                                     .map(cv -> cv.getMessage())
+                                     .map(cv -> cv.getPropertyPath() + ": " + cv.getMessage())
                                      .collect(Collectors.joining(", "));
-            LOGGER.error("Application submission failed due to validation errors for user: {}. Errors: {}", request.getUsername(), errorMessages);
-            redirectAttributes.addFlashAttribute("errorMessage", "Application failed: " + errorMessages);
+            LOGGER.error("Validation failed for user: {}. Errors: {}", request.getUsername(), errorMessages);
+            redirectAttributes.addFlashAttribute("errorMessage", "Registration failed due to invalid data: " + errorMessages);
             return "redirect:/ui/register";
         } catch (Exception e) {
-            LOGGER.error("Application submission failed for user: {}. Error: {}", request.getUsername(), e.getMessage());
-            redirectAttributes.addFlashAttribute("errorMessage", "Application failed: " + e.getMessage());
+            // This catches other errors, like "PAN already exists"
+            LOGGER.error("Registration failed for user: {}. Error: {}", request.getUsername(), e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Registration failed: " + e.getMessage());
             return "redirect:/ui/register";
         }
     }

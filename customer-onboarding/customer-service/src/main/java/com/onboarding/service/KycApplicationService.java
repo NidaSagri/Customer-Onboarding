@@ -6,9 +6,13 @@ import com.onboarding.repository.KycApplicationRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional(readOnly = true) // This service is for reading data only
 public class KycApplicationService {
 
     private final KycApplicationRepository kycApplicationRepository;
@@ -19,6 +23,11 @@ public class KycApplicationService {
 
     public Page<KycApplication> findAllApplications(Pageable pageable) {
         return kycApplicationRepository.findAll(pageable);
+    }
+    
+    // Search for applications by name for the admin dashboard
+    public Page<KycApplication> searchApplications(String keyword, Pageable pageable) {
+        return kycApplicationRepository.findByFullNameContainingIgnoreCase(keyword, pageable);
     }
 
     public Optional<KycApplication> findApplicationById(Long id) {
@@ -31,5 +40,15 @@ public class KycApplicationService {
 
     public long countPendingApplications() {
         return kycApplicationRepository.countByKycStatus(KycStatus.PENDING);
+    }
+
+    // New method for the chatbot
+    public List<KycApplication> findTop5ApplicationsByKycStatus(KycStatus status) {
+        return kycApplicationRepository.findTop5ByKycStatusOrderByIdDesc(status);
+    }
+    
+ // --- NEW, REQUIRED METHOD ---
+    public Optional<KycApplication> findApplicationByUsername(String username) {
+        return kycApplicationRepository.findByUsername(username);
     }
 }

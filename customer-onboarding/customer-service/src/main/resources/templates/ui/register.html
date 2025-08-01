@@ -55,9 +55,12 @@
             <h3>Step 1: Personal Information</h3>
             <div class="form-group"><label>Full Name:</label><input type="text" th:field="*{customer.fullName}" required /></div>
             <div class="form-group"><label>Father's Name:</label><input type="text" th:field="*{customer.fatherName}" required /></div>
+            <!-- THE FIX IS HERE -->
+            <div class="form-group"><label>Mother's Name:</label><input type="text" th:field="*{customer.motherName}" required /></div>
+           
             <div class="form-group"><label>Gender:</label><select th:field="*{customer.gender}" required><option value="" disabled selected>-- Select --</option><option value="MALE">Male</option><option value="FEMALE">Female</option><option value="OTHER">Other</option></select></div>
             <div class="form-group"><label>Marital Status:</label><select th:field="*{customer.maritalStatus}" required><option value="" disabled selected>-- Select --</option><option value="SINGLE">Single</option><option value="MARRIED">Married</option></select></div>
-            <div class="form-group"><label>Nationality:</label><input type="text" th:field="*{customer.nationality}" required /></div>
+            <div class="form-group"><label>Nationality:</label><input type="text" th:field="*{customer.nationality}" value="Indian" required /></div>
             <div class="form-group"><label>Profession:</label><input type="text" th:field="*{customer.profession}" required /></div>
             <div class="form-group"><label>Email:</label><input type="email" th:field="*{customer.email}" required /></div>
             <div class="form-group"><label>Phone:</label><input type="tel" th:field="*{customer.phone}" required /></div>
@@ -120,14 +123,13 @@
         }
     }
     function nextStep(step) {
-        // Simple validation: check if required fields in the current step are filled
         let isValid = true;
         document.querySelectorAll(`#step-${currentStep} [required]`).forEach(input => {
+            // Reset border color
+            input.style.borderColor = 'var(--border-color)';
             if (!input.value) {
                 input.style.borderColor = 'red';
                 isValid = false;
-            } else {
-                input.style.borderColor = 'var(--border-color)';
             }
         });
         if (isValid) {

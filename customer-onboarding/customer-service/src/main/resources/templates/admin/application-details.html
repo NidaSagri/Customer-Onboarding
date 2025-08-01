@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Customer Details</title>
+    <title>Application Details</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
         .details-grid {
@@ -38,22 +38,6 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .doc-container img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .rejection-modal-content {
-            background: #fff; border-radius: 12px; padding: 2.5rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-width: 500px;
-            text-align: left;
-        }
-        .rejection-modal-content h3 { color: var(--primary-red); margin-top: 0; }
-        .rejection-modal-content textarea {
-            width: 100%; min-height: 120px; resize: vertical;
-            padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);
-            font-size: 1rem; font-family: inherit; margin-bottom: 1rem;
         }
     </style>
 </head>
@@ -63,7 +47,7 @@
         <img src="https://img.etimg.com/thumb/width-1200,height-900,imgsize-8519,resizemode-75,msid-114568605/markets/stocks/news/oracle-financial-services-shares-in-focus-after-q2-profit-jumps-38-yoy-to-rs-578-crore.jpg" alt="OFSS Bank Logo" />
     </div>
     <header class="dashboard-header" style="background: none; box-shadow: none; padding: 0; margin-bottom: 2rem;">
-        <h1 style="text-align: center; width: 100%;">Review Details for <span th:text="${customer.fullName}"></span></h1>
+        <h1 style="text-align: center; width: 100%;">Review Application for <span th:text="${application.fullName}"></span></h1>
         <a th:href="@{/admin/dashboard}" class="btn btn-secondary" style="white-space: nowrap;">Back to Dashboard</a>
     </header>
 
@@ -71,23 +55,27 @@
         <!-- Left Column: Personal Information -->
         <div class="details-section">
             <h3>Personal Information</h3>
-            <p><strong>Customer ID:</strong> <span th:text="${customer.id}"></span></p>
-            <p><strong>Email:</strong> <span th:text="${customer.email}"></span></p>
-            <p><strong>Phone:</strong> <span th:text="${customer.phone}"></span></p>
-            <p><strong>Date of Birth:</strong> <span th:text="${#temporals.format(customer.dob, 'dd-MMM-yyyy')}"></span></p>
-            <p><strong>Address:</strong> <span th:text="${customer.address}"></span></p>
+            <p><strong>Application ID:</strong> <span th:text="${application.id}"></span></p>
+            <p><strong>Full Name:</strong> <span th:text="${application.fullName}"></span></p>
+            <p><strong>Father's Name:</strong> <span th:text="${application.fatherName}"></span></p>
+            <p><strong>Mother's Name:</strong> <span th:text="${application.motherName}"></span></p>
+            <p><strong>Date of Birth:</strong> <span th:text="${#temporals.format(application.dob, 'dd-MMM-yyyy')}"></span></p>
+            <p><strong>Gender:</strong> <span th:text="${application.gender}"></span></p>
+            <p><strong>Marital Status:</strong> <span th:text="${application.maritalStatus}"></span></p>
+            <p><strong>Nationality:</strong> <span th:text="${application.nationality}"></span></p>
+            <p><strong>Profession:</strong> <span th:text="${application.profession}"></span></p>
         </div>
-        <!-- Right Column: Identity & Account -->
+        <!-- Right Column: Identity & Contact -->
         <div class="details-section">
-            <h3>Identity & Account</h3>
-            <p><strong>PAN:</strong> <span th:text="${customer.pan}"></span></p>
-            <p><strong>Aadhaar:</strong> <span th:text="${customer.aadhaar}"></span></p>
-            <p><strong>KYC Status:</strong> <span class="badge" th:classappend="${customer.kycStatus.name()}" th:text="${customer.kycStatus}"></span></p>
-            <div th:if="${account != null}"><hr>
-                <p><strong>Account Number:</strong> <span th:text="${account.accountNumber}"></span></p>
-                <p><strong>Account Type:</strong> <span th:text="${account.accountType}"></span></p>
-                <p><strong>Account Status:</strong> <span class="badge" th:classappend="${account.accountStatus}" th:text="${account.accountStatus}"></span></p>
-            </div>
+            <h3>Identity & Contact</h3>
+            <p><strong>Email:</strong> <span th:text="${application.email}"></span></p>
+            <p><strong>Phone:</strong> <span th:text="${application.phone}"></span></p>
+            <p><strong>Address:</strong> <span th:text="${application.address}"></span></p>
+            <p><strong>PAN:</strong> <span th:text="${application.pan}"></span></p>
+            <p><strong>Aadhaar:</strong> <span th:text="${application.aadhaar}"></span></p>
+            <p><strong>Proposed Username:</strong> <span th:text="${application.username}"></span></p>
+            <p><strong>Proposed Account Type:</strong> <span th:text="${application.preferredAccountType}"></span></p>
+            <p><strong>Application Status:</strong> <span class="badge" th:classappend="${application.kycStatus?.name()}" th:text="${application.kycStatus}"></span></p>
         </div>
     </div>
 
@@ -95,28 +83,19 @@
     <div class="details-section">
         <h3>Uploaded Documents (Click to View)</h3>
         <div class="doc-viewer">
-            <div class="doc-container" th:if="${customer.aadhaarPhotoBase64}">
-                <h4>Aadhaar Card</h4>
-                <img th:src="${customer.aadhaarPhotoBase64}" alt="Aadhaar Photo" onclick="openModal(this.src)"/>
-            </div>
-            <div class="doc-container" th:if="${customer.panPhotoBase64}">
-                <h4>PAN Card</h4>
-                <img th:src="${customer.panPhotoBase64}" alt="PAN Photo" onclick="openModal(this.src)"/>
-            </div>
-            <div class="doc-container" th:if="${customer.passportPhotoBase64}">
-                <h4>Passport Photo</h4>
-                <img th:src="${customer.passportPhotoBase64}" alt="Passport Photo" onclick="openModal(this.src)"/>
-            </div>
+            <div class="doc-container" th:if="${application.aadhaarPhotoBase64}"><h4 style="margin-bottom: 10px;">Aadhaar Card</h4><img th:src="${application.aadhaarPhotoBase64}" alt="Aadhaar Photo" onclick="openModal(this.src)"/></div>
+            <div class="doc-container" th:if="${application.panPhotoBase64}"><h4 style="margin-bottom: 10px;">PAN Card</h4><img th:src="${application.panPhotoBase64}" alt="PAN Photo" onclick="openModal(this.src)"/></div>
+            <div class="doc-container" th:if="${application.passportPhotoBase64}"><h4 style="margin-bottom: 10px;">Passport Photo</h4><img th:src="${application.passportPhotoBase64}" alt="Passport Photo" onclick="openModal(this.src)"/></div>
         </div>
     </div>
     
     <!-- Action buttons for pending KYC -->
-    <div th:if="${customer.kycStatus.name() == 'PENDING'}" class="action-form" style="justify-content: center; padding-top: 2rem;">
-        <form th:action="@{/admin/customer/{id}/verify(id=${customer.id})}" method="post" style="display:inline;">
+    <div th:if="${application.kycStatus.name() == 'PENDING'}" class="action-form" style="justify-content: center; padding-top: 2rem;">
+        <form th:action="@{/admin/application/{id}/verify(id=${application.id})}" method="post" style="display:inline;">
              <input type="hidden" name="approved" value="true" />
-             <button type="submit" class="btn btn-success">Approve KYC</button>
+             <button type="submit" class="btn btn-success">Approve Application</button>
         </form>
-        <button type="button" class="btn btn-danger" onclick="openRejectionModal()">Reject KYC</button>
+        <button type="button" class="btn btn-danger" onclick="openRejectionModal()">Reject Application</button>
     </div>
 </div>
 
@@ -131,7 +110,7 @@
     <div class="rejection-modal-content" onclick="event.stopPropagation()">
         <h3>Provide Reason for Rejection</h3>
         <p>This reason will be sent to the customer via email.</p>
-        <form th:action="@{/admin/customer/{id}/verify(id=${customer.id})}" method="post">
+        <form th:action="@{/admin/application/{id}/verify(id=${application.id})}" method="post">
             <input type="hidden" name="approved" value="false" />
             <div class="form-group">
                 <textarea name="rejectionReason" placeholder="e.g., PAN card image is blurry..." required></textarea>

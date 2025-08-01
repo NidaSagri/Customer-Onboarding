@@ -32,7 +32,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         // Step 2: If not found by username, try finding them by their associated customer's email.
         if (userOptional.isEmpty()) {
-            userOptional = userRepository.findByCustomer_Email(loginIdentifier);
+            userOptional = userRepository.findByCustomerEmail(loginIdentifier);
         }
 
         // Step 3: If still not found after both attempts, the user does not exist.
