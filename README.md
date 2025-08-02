@@ -64,6 +64,62 @@ This project is a complete, full-stack digital customer onboarding platform for 
 ```
 
 ---
+
+## ER-Diagram      
+                                     
+                                    
++-------------------------+  1... *  +----------------------------+           +----------------------+
+|        Customer         |<---------|          Account           |           |   KYC_Applications   |
++-------------------------+          +----------------------------+           +----------------------+
+| ID (PK)                 |          | ID (PK)                    |           | ID (PK)              |
+| AADHAAR                 |          | ACCOUNT_NUMBER             |           | AADHAAR              |
+| AADHAAR_PHOTO_BASE64    |          | ACCOUNT_STATUS             |           | AADHAARPHOTOBASE64   |
+| ADDRESS                 |          | BALANCE                    |           | ADDRESS              |
+| DOB                     |          | BRANCH_NAME                |           | DOB                  |
+| EMAIL                   |          | CHEQUE_BOOK_ISSUED         |           | EMAIL                |
+| FATHERNAME              |          | CREATED_AT                 |           | FATHERNAME           |
+| FULLNAME                |          | CUSTOMER_ID (FK)           |           | FULLNAME             |
+| GENDER                  |          | DATE_OF_ACCOUNT_OPENING    |           | GENDER               |
+| KYCSTATUS               |          | IFSC_CODE                  |           | KYCSTATUS            |
+| MARITALSTATUS           |          | MICR_CODE                  |           | MARITALSTATUS        |
+| MOTHERNAME              |          | MODE_OF_OPERATION          |           | MOTHERNAME           |
+| NATIONALITY             |          | NET_BANKING_ENABLED        |           | NATIONALITY          |
+| PAN                     |          | NOMINEE_NAME               |           | PAN                  |
+| PAN_PHOTO_BASE64        |          | NOMINEE_REGISTERED         |           | PANPHOTOBASE64       |
+| PASSPORT_PHOTO_BASE64   |          +----------------------------+           | PASSPORTPHOTOBASE64  |
+| PHONE                   |                                                   | PASSWORD             |
+| PROFESSION              |                                                   | PHONE                |
++-------------------------+                                                   | PREFERREDACCOUNTTYPE |
+     |  1                                                                     | PROFESSION           |
+     |  .                                                                     | REJECTIONREASON      |
+     |  .                                                                     | USERNAME             |
+     |  .                                                                     +----------------------+ 
+     |
+     |
+     | 
+     |
+     | 1
++-------------+
+| App_User    |
++-------------+
+| ID (PK)     |
+| USERNAME    |
+| PASSWORD    |
+| CUSTOMER_ID | (FK)
++-------------+
+     |*                                              Customer ⬌ Account => One-to-Many
+     |                                               Customer ⬌ App_User => One-to-One
+     |                                               App_User ⬌ User_Roles => Many-to-Many
+     |                                               KYC_Applications  => Standalone 
+     |*
++-------------+
+| User_Roles  |
++-------------+
+| USER_ID (FK)|
+| ROLE_ID (FK)|
++-------------+
+
+
 ## Getting Started
 
 ### Prerequisites
