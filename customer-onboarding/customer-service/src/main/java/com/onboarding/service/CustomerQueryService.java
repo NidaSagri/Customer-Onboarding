@@ -20,6 +20,11 @@ public class CustomerQueryService {
     public CustomerQueryService(CustomerRepository customerRepository) {
         this.customerRepository = customerRepository;
     }
+    
+    // --- NEW METHOD ---
+    public Optional<Customer> findCustomerByEmail(String email) {
+        return customerRepository.findByEmail(email);
+    }
 
     // --- All the read operations now live here ---
 
