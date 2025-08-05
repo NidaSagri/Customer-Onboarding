@@ -2,54 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>New Account Application</title>
+    <title>Customer Registration</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
-        .form-step { display: none; }
-        .form-step.active { display: block; animation: fadeIn 0.5s; }
-        .form-navigation { display: flex; justify-content: space-between; margin-top: 2rem; }
-        
-        .progress-bar { display: flex; justify-content: space-between; margin-bottom: 2.5rem; }
-        
-        .progress-step { 
-            flex: 1; text-align: center; color: #ccc; position: relative; font-weight: 500;
-            padding-top: 45px;
-        }
-        
-        .progress-step.active { color: var(--primary-red); font-weight: bold; }
-        
-        .progress-step::before {
-            content: ''; position: absolute;
-            top: 38px; left: -100%;
-            width: 200%; height: 3px; background-color: #ccc;
-            z-index: -1;
-        }
-        
-        .progress-step:first-child::before { content: none; }
-
-        .progress-step.active::after {
-            content: '✔'; 
-            display: block; width: 30px; height: 30px;
-            background-color: var(--primary-red);
-            border-radius: 50%; color: white; line-height: 30px;
-            position: absolute; top: 0; left: 50%;
-            transform: translateX(-50%); margin: 0;
-        }
-        
         .upload-group { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .upload-group .form-group { flex-grow: 1; margin-bottom: 0; }
-        .image-preview { width: 100px; height: 60px;margin-top:5px; border: 1px solid var(--border-color); background-size: cover; background-position: center; border-radius: 8px; background-color: #f8f9fa; }
+        .image-preview { width: 100px; height: 60px; border: 1px solid var(--border-color); background-size: cover; background-position: center; border-radius: 8px; background-color: #f8f9fa; }
         .passport-preview { height: 120px; }
-        
-        /* THE FIX IS HERE: Style for the error messages */
-        .error-message {
-            color: var(--primary-red, #dc3545);
-            font-size: 0.8rem;
-            margin-top: 4px;
-            min-height: 1rem; /* Prevents layout shifts */
-        }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -57,152 +16,104 @@
     <div class="logo-container">
         <img src="https://img.etimg.com/thumb/width-1200,height-900,imgsize-8519,resizemode-75,msid-114568605/markets/stocks/news/oracle-financial-services-shares-in-focus-after-q2-profit-jumps-38-yoy-to-rs-578-crore.jpg" alt="OFSS Bank Logo" />
     </div>
-    <h2>Open Your New Account</h2>
-    
-    <div class="progress-bar">
-        <div id="step-1-progress" class="progress-step active">Personal Info</div>
-        <div id="step-2-progress" class="progress-step">Documents</div>
-        <div id="step-3-progress" class="progress-step">Services & Login</div>
-    </div>
+    <h2>New Customer Registration</h2>
 
     <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}" style="background-color: #f8d7da; color: #721c24; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;"></div>
 
-    <form id="registrationForm" th:action="@{/ui/register}" th:object="${registrationRequest}" method="post" enctype="multipart/form-data" novalidate>
+    <form th:action="@{/ui/register}" th:object="${registrationRequest}" method="post">
+        <h3>Personal Details</h3>
+        <div class="form-group">
+            <label for="fullName">Full Name:</label>
+            <input type="text" id="fullName" th:field="*{customer.fullName}" required />
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" th:field="*{customer.email}" required />
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone:</label>
+            <input type="tel" id="phone" th:field="*{customer.phone}" required />
+        </div>
+        <div class="form-group">
+            <label for="dob">Date of Birth:</label>
+            <input type="date" id="dob" th:field="*{customer.dob}" required />
+        </div>
+        <div class="form-group">
+            <label for="address">Address:</label>
+            <input type="text" id="address" th:field="*{customer.address}" required />
+        </div>
+
+        <hr style="margin: 2rem 0;">
+        <h3>Documents</h3>
+        <div class="upload-group">
+            <div class="form-group">
+                <label for="aadhaar">Aadhaar Number:</label>
+                <input type="text" id="aadhaar" th:field="*{customer.aadhaar}" required />
+            </div>
+            <div>
+                <label>Aadhaar Photo:</label>
+                <input type="file" class="form-control" id="aadhaarFile" accept="image/*" required onchange="handleFileUpload(event, 'aadhaarPhotoBase64', 'aadhaarPreview')">
+                <div id="aadhaarPreview" class="image-preview"></div>
+            </div>
+        </div>
+        <div class="upload-group">
+            <div class="form-group">
+                <label for="pan">PAN Number:</label>
+                <input type="text" id="pan" th:field="*{customer.pan}" required />
+            </div>
+            <div>
+                <label>PAN Photo:</label>
+                <input type="file" class="form-control" id="panFile" accept="image/*" required onchange="handleFileUpload(event, 'panPhotoBase64', 'panPreview')">
+                <div id="panPreview" class="image-preview"></div>
+            </div>
+        </div>
+        <div class="form-group">
+             <label>Passport Photo:</label>
+             <input type="file" class="form-control" id="passportFile" accept="image/*" required onchange="handleFileUpload(event, 'passportPhotoBase64', 'passportPreview')">
+             <div id="passportPreview" class="image-preview passport-preview"></div>
+        </div>
         
-        <!-- STEP 1: Personal Info -->
-        <div id="step-1" class="form-step active">
-            <h3>Step 1: Personal Information</h3>
-            <div class="form-group"><label>Full Name:</label><input type="text" th:field="*{customer.fullName}" required /><div class="error-message"></div></div>
-            <div class="form-group"><label>Father's Name:</label><input type="text" th:field="*{customer.fatherName}" required /><div class="error-message"></div></div>
-            <div class="form-group"><label>Mother's Name:</label><input type="text" th:field="*{customer.motherName}" required /><div class="error-message"></div></div>
-            <div class="form-group"><label>Gender:</label><select th:field="*{customer.gender}" required><option value="" disabled selected>-- Select --</option><option value="MALE">Male</option><option value="FEMALE">Female</option><option value="OTHER">Other</option></select><div class="error-message"></div></div>
-            <div class="form-group"><label>Marital Status:</label><select th:field="*{customer.maritalStatus}" required><option value="" disabled selected>-- Select --</option><option value="SINGLE">Single</option><option value="MARRIED">Married</option></select><div class="error-message"></div></div>
-            <div class="form-group"><label>Nationality:</label><input type="text" th:field="*{customer.nationality}" value="Indian" required /><div class="error-message"></div></div>
-            <div class="form-group"><label>Profession:</label><input type="text" th:field="*{customer.profession}" required /><div class="error-message"></div></div>
-            <div class="form-group"><label>Email:</label><input type="email" th:field="*{customer.email}" required /><div class="error-message"></div></div>
-            <div class="form-group"><label>Phone:</label><input type="tel" th:field="*{customer.phone}" required /><div class="error-message"></div></div>
-            <div class="form-group"><label>Date of Birth:</label><input type="date" th:field="*{customer.dob}" required /><div class="error-message"></div></div>
-            <div class="form-group"><label>Address:</label><input type="text" th:field="*{customer.address}" required /><div class="error-message"></div></div>
-            <div class="form-navigation"><span></span><button type="button" class="btn" onclick="nextStep(2)">Next</button></div>
+        <hr style="margin: 2rem 0;">
+        <h3>Account & Login</h3>
+        <div class="form-group">
+            <label for="accountType">Account Type to Open:</label>
+            <select id="accountType" th:field="*{accountType}" required>
+                <option value="" disabled selected>-- Select an Account Type --</option>
+                <option value="SAVINGS">Savings Account</option>
+                <option value="CURRENT">Current Account</option>
+            </select>
         </div>
-
-        <!-- STEP 2: Document Upload -->
-        <div id="step-2" class="form-step">
-            <h3>Step 2: Upload Documents</h3>
-            <div class="upload-group">
-                <div class="form-group"><label>Aadhaar Number:</label><input type="text" th:field="*{customer.aadhaar}" required /><div class="error-message"></div></div>
-                <div><label>Aadhaar Photo:</label><input type="file" class="form-control" onchange="handleFileUpload(event, 'aadhaarPhotoBase64', 'aadhaarPreview')" required accept="image/*"><div id="aadhaarPreview" class="image-preview"></div><div class="error-message"></div></div>
-            </div>
-            <div class="upload-group">
-                <div class="form-group"><label>PAN Number:</label><input type="text" th:field="*{customer.pan}" required /><div class="error-message"></div></div>
-                <div><label>PAN Photo:</label><input type="file" class="form-control" onchange="handleFileUpload(event, 'panPhotoBase64', 'panPreview')" required accept="image/*"><div id="panPreview" class="image-preview"></div><div class="error-message"></div></div>
-            </div>
-            <div class="form-group"><label>Passport Photo:</label><input type="file" class="form-control" onchange="handleFileUpload(event, 'passportPhotoBase64', 'passportPreview')" required accept="image/*"><div id="passportPreview" class="image-preview passport-preview"></div><div class="error-message"></div></div>
-            <div class="form-navigation"><button type="button" class="btn btn-secondary" onclick="prevStep(1)">Back</button><button type="button" class="btn" onclick="nextStep(3)">Next</button></div>
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" th:field="*{username}" required />
         </div>
-
-        <!-- STEP 3: Services & Login -->
-        <div id="step-3" class="form-step">
-            <h3>Step 3: Choose Services & Create Login</h3>
-            <div class="form-group"><label>Account Type:</label><select th:field="*{accountType}" required><option value="" disabled selected>-- Select --</option><option value="SAVINGS">Savings</option><option value="CURRENT">Current</option></select><div class="error-message"></div></div>
-            <div class="form-group"><label>Username:</label><input type="text" th:field="*{username}" required /><div class="error-message"></div></div>
-            <div class="form-group"><label>Password:</label><input type="password" th:field="*{password}" required /><div class="error-message"></div></div>
-            <div class="form-navigation"><button type="button" class="btn btn-secondary" onclick="prevStep(2)">Back</button><button type="submit" class="btn btn-success">Submit Application</button></div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" th:field="*{password}" required />
         </div>
         
         <input type="hidden" id="aadhaarPhotoBase64" th:field="*{customer.aadhaarPhotoBase64}" />
         <input type="hidden" id="panPhotoBase64" th:field="*{customer.panPhotoBase64}" />
         <input type="hidden" id="passportPhotoBase64" th:field="*{customer.passportPhotoBase64}" />
+
+        <button type="submit" class="btn">Register</button>
     </form>
+    <div class="form-link" style="color: #6c757d;">
+        <p>Already have an account? <a th:href="@{/login}" style="color: var(--primary-red); text-decoration: none; font-weight: 600;">Login here</a></p>
+    </div>
 </div>
 
 <script>
-    let currentStep = 1;
-
-    function showStep(step) {
-        document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
-        document.getElementById(`step-${step}`).classList.add('active');
-        document.querySelectorAll('.progress-step').forEach(el => el.classList.remove('active'));
-        for(let i = 1; i <= step; i++) {
-            document.getElementById(`step-${i}-progress`).classList.add('active');
-        }
-    }
-
-    function validateStep(step) {
-        let isValid = true;
-        const inputsToValidate = document.querySelectorAll(`#step-${step} [required]`);
-
-        // Clear previous errors for the current step
-        document.querySelectorAll(`#step-${step} .error-message`).forEach(el => el.textContent = '');
-        inputsToValidate.forEach(input => input.style.borderColor = 'var(--border-color)');
-
-        for (const input of inputsToValidate) {
-            const parentGroup = input.closest('.form-group, div');
-            const errorDiv = parentGroup.querySelector('.error-message');
-            let errorMessage = '';
-
-            // 1. General check for emptiness (all required fields)
-            if (!input.value.trim()) {
-                errorMessage = 'This field is required.';
-            } 
-            // 2. Specific format validations
-            else if (input.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value)) {
-                errorMessage = 'Please enter a valid email address.';
-            } else if (input.matches('[th\\:field*="customer.phone"]') && !/^\d{10}$/.test(input.value)) {
-                errorMessage = 'Phone number must be 10 digits.';
-            } else if (input.matches('[th\\:field*="customer.aadhaar"]') && !/^\d{12}$/.test(input.value)) {
-                errorMessage = 'Aadhaar number must be 12 digits.';
-            } else if (input.matches('[th\\:field*="customer.pan"]') && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(input.value)) {
-                errorMessage = 'Please enter a valid PAN format (e.g., ABCDE1234F).';
-            } else if (input.matches('[th\\:field*="username"]') && input.value.length < 5) {
-                errorMessage = 'Username must be at least 5 characters.';
-            } else if (input.type === 'password' && input.value.length < 8) {
-                errorMessage = 'Password must be at least 8 characters.';
-            }
-            
-            if (errorMessage) {
-                isValid = false;
-                input.style.borderColor = 'red';
-                if(errorDiv) errorDiv.textContent = errorMessage;
-            }
-        }
-        return isValid;
-    }
-
-    function nextStep(step) {
-        if (validateStep(currentStep)) {
-            currentStep = step;
-            showStep(currentStep);
-        }
-    }
-
-    function prevStep(step) {
-        currentStep = step;
-        showStep(currentStep);
-    }
-    
-    document.getElementById('registrationForm').addEventListener('submit', function(event) {
-        if (!validateStep(currentStep)) {
-            event.preventDefault(); // Stop form submission if validation fails
-        }
-    });
-
-    function handleFileUpload(event, hiddenInputId, previewId) {
-        const file = event.target.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const base64String = e.target.result;
-            document.getElementById(hiddenInputId).value = base64String;
-            document.getElementById(previewId).style.backgroundImage = `url('${base64String}')`;
-        };
-        reader.readAsDataURL(file);
-        // Clear any file-related error message upon successful selection
-        const parentGroup = event.target.closest('div');
-        const errorDiv = parentGroup.querySelector('.error-message');
-        if(errorDiv) errorDiv.textContent = '';
-    }
-
-    showStep(currentStep);
+function handleFileUpload(event, hiddenInputId, previewId) {
+    const file = event.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64String = e.target.result;
+        document.getElementById(hiddenInputId).value = base64String;
+        document.getElementById(previewId).style.backgroundImage = `url('${base64String}')`;
+    };
+    reader.readAsDataURL(file);
+}
 </script>
 </body>
 </html>

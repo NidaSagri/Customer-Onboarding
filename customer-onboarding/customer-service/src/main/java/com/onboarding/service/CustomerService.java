@@ -1,76 +1,63 @@
 package com.onboarding.service;
 
-import com.onboarding.dto.CustomerRegistrationRequest;
-import com.onboarding.dto.NewCustomerEvent;
+import com.onboarding.dto.KycApplicationDataDTO;
 import com.onboarding.exception.CustomerAlreadyExistsException;
-// We DO NOT import AccountClient here
-import com.onboarding.model.KycApplication;
-import com.onboarding.repository.KycApplicationRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import com.onboarding.model.Customer;
+import com.onboarding.model.Role;
+import com.onboarding.model.User;
+import com.onboarding.repository.CustomerRepository;
+import com.onboarding.repository.RoleRepository;
+import com.onboarding.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.Set;
 
 @Service
 public class CustomerService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CustomerService.class);
+    private final CustomerRepository customerRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
-    private final KycApplicationRepository kycApplicationRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final KafkaProducerService kafkaProducerService;
-    // The AccountClient dependency has been REMOVED
-
-    // --- CORRECTED CONSTRUCTOR ---
-    public CustomerService(KycApplicationRepository kycApplicationRepository, PasswordEncoder passwordEncoder, KafkaProducerService kafkaProducerService) {
-        this.kycApplicationRepository = kycApplicationRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.kafkaProducerService = kafkaProducerService;
+    public CustomerService(CustomerRepository customerRepository, UserRepository userRepository, RoleRepository roleRepository) {
+        this.customerRepository = customerRepository;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
     }
-    
+
     @Transactional
-    public KycApplication registerKycApplication(CustomerRegistrationRequest request) {
-        LOGGER.info("Processing new KYC application for user: {}", request.getUsername());
+    public Customer createApprovedCustomer(KycApplicationDataDTO kycData) {
+        // Validation to ensure we don't create duplicates
+        if (customerRepository.findByPan(kycData.getPan()).isPresent() ||
+            userRepository.findByUsername(kycData.getUsername()).isPresent() ||
+            customerRepository.findByAadhaar(kycData.getAadhaar()).isPresent()) {
+            throw new CustomerAlreadyExistsException("A customer or user with these unique details already exists.");
+        }
 
-        CustomerRegistrationRequest.CustomerData customerData = request.getCustomer();
+        // 1. Create and save the Customer entity
+        Customer customer = new Customer();
+        customer.setFullName(kycData.getFullName());
+        customer.setEmail(kycData.getEmail());
+        customer.setPhone(kycData.getPhone());
+        customer.setDob(kycData.getDob());
+        customer.setAddress(kycData.getAddress());
+        customer.setPan(kycData.getPan());
+        customer.setAadhaar(kycData.getAadhaar());
+        customer.setKycApplicationId(kycData.getKycApplicationId());
+        Customer savedCustomer = customerRepository.save(customer);
 
-        // Validation logic (this is correct)...
-        
-        KycApplication application = new KycApplication();
-        
-        // --- THE FIX: Ensure every single field is copied ---
-        application.setFullName(customerData.getFullName());
-        application.setFatherName(customerData.getFatherName());
-        application.setMotherName(customerData.getMotherName()); // <-- Critical line
-        application.setGender(customerData.getGender());
-        application.setMaritalStatus(customerData.getMaritalStatus());
-        application.setNationality(customerData.getNationality());
-        application.setProfession(customerData.getProfession());
-        application.setEmail(customerData.getEmail());
-        application.setPhone(customerData.getPhone());
-        application.setDob(customerData.getDob());
-        application.setAddress(customerData.getAddress());
-        application.setPan(customerData.getPan());
-        application.setAadhaar(customerData.getAadhaar());
-        application.setAadhaarPhotoBase64(customerData.getAadhaarPhotoBase64());
-        application.setPanPhotoBase64(customerData.getPanPhotoBase64());
-        application.setPassportPhotoBase64(customerData.getPassportPhotoBase64());
-        application.setPreferredAccountType(request.getAccountType());
-        application.setUsername(request.getUsername());
-        application.setPassword(passwordEncoder.encode(request.getPassword()));
+        // 2. Create and save the associated User entity
+        Role customerRole = roleRepository.findByName("ROLE_CUSTOMER")
+                .orElseThrow(() -> new RuntimeException("CRITICAL: ROLE_CUSTOMER not found in the database."));
+                
+        User user = new User();
+        user.setUsername(kycData.getUsername());
+        // The password comes pre-encrypted from the kyc-service
+        user.setPassword(kycData.getPassword());
+        user.setRoles(Set.of(customerRole));
+        user.setCustomer(savedCustomer);
+        userRepository.save(user);
 
-        KycApplication savedApplication = kycApplicationRepository.save(application);
-        LOGGER.info("Successfully saved new KYC application with ID: {}", savedApplication.getId());
-        
-        // Publish an event to notify the admin
-        NewCustomerEvent event = new NewCustomerEvent(
-            savedApplication.getId(),
-            savedApplication.getFullName(),
-            savedApplication.getEmail()
-        );
-        kafkaProducerService.sendNewCustomerNotification(event);
-
-        return savedApplication;
+        return savedCustomer;
     }
 }

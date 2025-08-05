@@ -4,268 +4,92 @@
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f8;
-            margin: 0;
-            padding: 0;
-        }
-
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            border: 1px solid #e0e0e0;
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 0 8px rgba(0,0,0,0.05);
-            margin-top: 1.5rem;
-        }
-
-        .table th,
-        .table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid #e0e0e0;
-            text-align: left;
-            font-size: 14px;
-            color: #333;
-        }
-
-        .table th {
-            background-color: #f9f9f9;
-            font-weight: 600;
-            color: #555;
-        }
-
-        .table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .badge {
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #fff;
-            display: inline-block;
-        }
-
-        .PENDING {
-            background-color: #fbc02d;
-            color: #000;
-        }
-
-        .APPROVED {
-            background-color: #4caf50;
-        }
-
-        .REJECTED {
-            background-color: #f44336;
-        }
-
-        .btn {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 6px;
-            background-color: #c62828;
-            color: white;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            text-decoration: none;
-        }
-
-        .btn:hover {
-            background-color: #b71c1c;
-        }
-
-        .btn-secondary {
-            background-color: #757575;
-        }
-
-        .btn-secondary:hover {
-            background-color: #616161;
-        }
-
-        .btn-logout {
-            background-color: #1565c0;
-            margin-left: auto;
-        }
-
-        .btn-logout:hover {
-            background-color: #0d47a1;
-        }
-
-        .dashboard-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem 2rem;
-            background-color: #fff;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-        }
-
-        .sidebar {
-            padding: 1rem;
-        }
-
-        .main-content {
-            padding: 2rem;
-        }
-
-        .stats-container {
-            display: flex;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .stat-card {
-            background-color: #fff;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-            flex: 1;
-        }
-
-        .stat-number {
-            font-size: 1.8rem;
-            font-weight: bold;
-        }
-
-        .search-bar {
-            margin-bottom: 1.5rem;
-        }
-
-        .search-bar input[type="text"] {
-            padding: 8px 12px;
-            font-size: 14px;
-            width: 250px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            margin-right: 0.5rem;
-        }
-
-        .action-cell {
-            text-align: center;
-        }
-
-        .pagination {
-            display: flex;
-            gap: 6px;
-            justify-content: center;
-            align-items: center;
-            margin-top: 2rem;
-        }
-
-        .pagination a {
-            padding: 6px 10px;
-            border-radius: 5px;
-            background: #f0f0f0;
-            color: #333;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .pagination a.current {
-            background-color: #1976d2;
-            color: #fff;
-        }
-
-        .pagination a.disabled {
-            pointer-events: none;
-            opacity: 0.5;
-        }
-    </style>
 </head>
-
 <body class="dashboard-grid">
 
-<header class="dashboard-header">
-    <div class="logo-container">
-        <img src="https://img.etimg.com/thumb/width-1200,height-900,imgsize-8519,resizemode-75,msid-114568605/markets/stocks/news/oracle-financial-services-shares-in-focus-after-q2-profit-jumps-38-yoy-to-rs-578-crore.jpg" alt="OFSS Bank Logo" style="max-width: 120px; border-radius: 8px;" />
-    </div>
-    <h1>Admin Dashboard</h1>
-    <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()">
-        <button type="submit" class="btn btn-logout">Logout</button>
-    </form>
-</header>
-
-<aside class="sidebar">
-    <div class="chatbot-container">
-        <h4>AI Assistant (Admin)</h4>
-        <div id="chat-window" class="chat-window"><p><strong>Bot:</strong> Hello Admin! How can I help?</p></div>
-        <div class="chat-input-area">
-            <input type="text" id="chat-input" placeholder="Ask a question...">
-            <button id="send-btn" class="btn btn-sm">Send</button>
+    <!-- FIX: Simplified Header Structure -->
+    <header class="dashboard-header">
+        <div class="logo-container">
+            <img src="https://img.etimg.com/thumb/width-1200,height-900,imgsize-8519,resizemode-75,msid-114568605/markets/stocks/news/oracle-financial-services-shares-in-focus-after-q2-profit-jumps-38-yoy-to-rs-578-crore.jpg" alt="OFSS Bank Logo" style="max-width: 120px; border-radius: 8px;" />
         </div>
-    </div>
-</aside>
-
-<main class="main-content">
-
-    <div class="stats-container">
-        <div class="stat-card"><h3>Total Applications</h3><p class="stat-number" th:text="${totalApplications}">0</p></div>
-        <div class="stat-card"><h3>Pending KYC</h3><p class="stat-number" th:text="${pendingKyc}">0</p></div>
-        <div class="stat-card"><h3>Verified Customers</h3><p class="stat-number" th:text="${verifiedCustomers}">0</p></div>
-    </div>
-
-    <div class="search-bar">
-        <form th:action="@{/admin/dashboard}" method="get">
-            <input type="text" name="keyword" th:value="${keyword}" placeholder="Search Applications by Name..."/>
-            <button type="submit" class="btn">Search</button>
-            <a th:if="${keyword}" th:href="@{/admin/dashboard}" class="btn btn-secondary">Clear</a>
+        <h1>Admin Dashboard</h1>
+        <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()">
+            <button type="submit" class="btn btn-logout">Logout</button>
         </form>
-    </div>
+    </header>
 
-    <div th:if="${message}" class="alert alert-success" th:text="${message}" style="background-color: #d4edda; color: #155724; padding: 1rem; border-radius: 8px;"></div>
-    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}" style="background-color: #f8d7da; color: #721c24; padding: 1rem; border-radius: 8px;"></div>
+    <aside class="sidebar">
+        <div class="chatbot-container">
+            <h4>AI Assistant (Admin)</h4>
+            <div id="chat-window" class="chat-window">
+                <p><strong>Bot:</strong> Hello Admin! How can I help?</p>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Ask a question...">
+                <button id="send-btn" class="btn btn-sm">Send</button>
+            </div>
+        </div>
+    </aside>
 
-    <!-- STYLED TABLE -->
-    <table class="table">
-        <thead>
-        <tr>
-            <th>App ID</th>
-            <th>Applicant Name</th>
-            <th>Email</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:if="${applications.empty}">
-            <td colspan="5" style="text-align: center;">No applications found.</td>
-        </tr>
-        <tr th:each="app : ${applications.content}">
-            <td th:text="${app.id}"></td>
-            <td th:text="${app.fullName}"></td>
-            <td th:text="${app.email}"></td>
-            <td>
-                <span class="badge" th:classappend="${app.kycStatus.name()}" th:text="${app.kycStatus}"></span>
-            </td>
-            <td class="action-cell">
-                <a th:href="@{/admin/application/{id}(id=${app.id})}" class="btn btn-sm">View</a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-
-    <!-- PAGINATION -->
-    <div th:if="${applications.totalPages > 1}" class="pagination">
-        <a th:href="@{/admin/dashboard(page=0)}" th:classappend="${applications.first ? 'disabled' : ''}">« First</a>
-        <a th:href="@{/admin/dashboard(page=${applications.number - 1})}" th:classappend="${applications.first ? 'disabled' : ''}">‹ Prev</a>
-        <span th:each="i : ${#numbers.sequence(0, applications.totalPages - 1)}"
-              th:if="${i >= applications.number - 2 && i <= applications.number + 2}">
-            <a th:href="@{/admin/dashboard(page=${i})}"
-               th:classappend="${i == applications.number ? 'current' : ''}"
-               th:text="${i + 1}"></a>
-        </span>
-        <a th:href="@{/admin/dashboard(page=${applications.number + 1})}" th:classappend="${applications.last ? 'disabled' : ''}">Next ›</a>
-        <a th:href="@{/admin/dashboard(page=${applications.totalPages - 1})}" th:classappend="${applications.last ? 'disabled' : ''}">Last »</a>
-    </div>
-</main>
-
+    <main class="main-content">
+         <div class="stats-container">
+            <div class="stat-card"><h3>Total Customers</h3><p class="stat-number" th:text="${totalCustomers}">0</p></div>
+            <div class="stat-card"><h3>Pending KYC</h3><p class="stat-number" th:text="${pendingKyc}">0</p></div>
+            <div class="stat-card"><h3>Verified Accounts</h3><p class="stat-number" th:text="${verifiedAccounts}">0</p></div>
+        </div>
+        <div class="search-bar">
+            <form th:action="@{/admin/dashboard}" method="get">
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="Search by Name, Email, PAN, or ID..."/>
+                <button type="submit" class="btn">Search</button>
+                <a th:if="${searchActive}" th:href="@{/admin/dashboard}" class="btn btn-secondary">Clear</a>
+            </form>
+        </div>
+        <table class="table">
+            <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>KYC Status</th><th>Account Status</th><th>Action</th></tr></thead>
+            <tbody>
+                <tr th:each="customer : ${customers.content}">
+                    <td th:text="${customer.id}"></td>
+                    <td th:text="${customer.fullName}"></td>
+                    <td th:text="${customer.email}"></td>
+                    <td><span class="badge" th:classappend="${customer.kycStatus.name()}" th:text="${customer.kycStatus}"></span></td>
+                    <td>
+                        <div th:if="${accountMap?.containsKey(customer.id)}">
+                            <span th:with="account=${accountMap.get(customer.id)}"><span class="badge" th:classappend="${account.accountStatus}" th:text="${account.accountStatus}"></span></span>
+                        </div>
+                        <div th:unless="${accountMap?.containsKey(customer.id)}"><span class="badge" style="background-color: #6c757d;">No Account</span></div>
+                    </td>
+                    <td class="action-cell">
+                        <a th:href="@{/admin/customer/{id}(id=${customer.id})}" class="btn btn-sm">View</a>
+                        <a th:href="@{/admin/customer/{id}/edit(id=${customer.id})}" class="btn btn-sm btn-secondary">Edit</a>
+                        <form th:action="@{/admin/customer/{id}/delete(id=${customer.id})}" method="post" onsubmit="return confirm('Are you sure?');"><button type="submit" class="btn btn-sm btn-danger">Delete</button></form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sendBtn = document.getElementById('send-btn');
+            const chatInput = document.getElementById('chat-input');
+            const chatWindow = document.getElementById('chat-window');
+            let chatHistory = [];
+            async function sendMessage() {
+                const query = chatInput.value.trim(); if (!query) return;
+                appendMessage('You', query); chatInput.value = ''; appendMessage('Bot', 'Thinking...');
+                try {
+                    const response = await fetch('http://localhost:5000/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: query, role: 'ADMIN', history: chatHistory }) });
+                    chatWindow.removeChild(chatWindow.lastChild); if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const data = await response.json(); appendMessage('Bot', data.response); chatHistory = data.history;
+                } catch (error) { console.error('Chatbot error:', error); chatWindow.removeChild(chatWindow.lastChild); appendMessage('Bot', 'Sorry, an error occurred.'); }
+            }
+            function appendMessage(sender, message) {
+                const p = document.createElement('p');
+                p.innerHTML = `<strong>${sender}:</strong> ${message.replace(/\n/g, '<br>')}`;
+                chatWindow.appendChild(p); chatWindow.scrollTop = chatWindow.scrollHeight;
+            }
+            if(sendBtn) sendBtn.addEventListener('click', sendMessage);
+            if(chatInput) chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
+        });
+    </script>
 </body>
 </html>

@@ -2,82 +2,129 @@ package com.onboarding.controller;
 
 import com.onboarding.dto.AccountDTO;
 import com.onboarding.feign.AccountClient;
-import com.onboarding.model.KycApplication;
-import com.onboarding.service.KycApplicationService;
+import com.onboarding.model.Customer;
+import com.onboarding.model.KycStatus;
+import com.onboarding.service.CustomerService;
 import com.onboarding.service.KycService;
+
+import java.util.HashMap; // <-- IMPORT HASHMAP
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import java.util.Map;
-import java.util.List;
-import java.util.stream.Collectors;
-import com.onboarding.service.CustomerQueryService;
-import com.onboarding.model.Customer;
-import java.util.HashMap;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
 
-    private final KycApplicationService kycApplicationService;
+    private final CustomerService customerService;
     private final KycService kycService;
-    private final CustomerQueryService customerQueryService;
     private final AccountClient accountClient;
 
-    public AdminController(KycApplicationService kycApplicationService, KycService kycService, CustomerQueryService customerQueryService, AccountClient accountClient) {
-        this.kycApplicationService = kycApplicationService;
+    public AdminController(CustomerService customerService, KycService kycService, AccountClient accountClient) {
+        this.customerService = customerService;
         this.kycService = kycService;
-        this.customerQueryService = customerQueryService;
         this.accountClient = accountClient;
     }
     
     @GetMapping("/dashboard")
-    public String adminDashboard(Model model, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    public String adminDashboard(Model model, @RequestParam(required = false) String keyword, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<KycApplication> applicationPage = kycApplicationService.findAllApplications(pageable);
-        model.addAttribute("applications", applicationPage);
+        Page<Customer> customerPage = StringUtils.hasText(keyword)
+            ? customerService.searchCustomers(keyword, pageable)
+            : customerService.findAllCustomers(pageable);
 
-        // This part needs to be refactored to fetch accounts for VERIFIED applications only if needed
-        // For now, focusing on the main list.
-        
-        model.addAttribute("totalApplications", kycApplicationService.countTotalApplications());
-        model.addAttribute("pendingKyc", kycApplicationService.countPendingApplications());
-        model.addAttribute("verifiedCustomers", customerQueryService.countTotalCustomers());
+        // --- NEW LOGIC TO FETCH ACCOUNT DETAILS ---
+        if (!customerPage.isEmpty()) {
+            List<Long> customerIds = customerPage.getContent().stream()
+                    .map(Customer::getId)
+                    .collect(Collectors.toList());
+
+            List<AccountDTO> accounts = accountClient.getAccountsByCustomerIds(customerIds);
+
+            // --- THE NEW APPROACH: Use a simple for-loop to build the map ---
+            // This is more verbose but avoids the specific IDE compiler issue.
+            Map<Long, AccountDTO> accountMap = new HashMap<>();
+            for (AccountDTO account : accounts) {
+                // The putIfAbsent method ensures that if we get duplicate customer IDs,
+                // we only keep the first account we find, safely handling duplicates.
+                accountMap.putIfAbsent(account.getCustomerId(), account);
+            }
+            
+            model.addAttribute("accountMap", accountMap);
+        }
+        // --- END OF NEW LOGIC ---
+
+        model.addAttribute("customers", customerPage);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("totalCustomers", customerService.countTotalCustomers());
+        model.addAttribute("pendingKyc", customerService.countCustomersByKycStatus(KycStatus.PENDING));
+        model.addAttribute("verifiedAccounts", customerService.countCustomersByKycStatus(KycStatus.VERIFIED));
         return "admin/dashboard";
     }
 
-    @GetMapping("/application/{id}")
-    public String applicationDetails(@PathVariable Long id, Model model) {
-        KycApplication application = kycApplicationService.findApplicationById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Invalid application Id:" + id));
-        model.addAttribute("application", application);
-        
-        // --- THE FIX: Try to find a promoted customer and their account ---
-        // This is important for viewing applications that have already been processed.
-        customerQueryService.findCustomerByEmail(application.getEmail()).ifPresent(customer -> {
-            try {
-                AccountDTO account = accountClient.getAccountByCustomerId(customer.getId());
-                model.addAttribute("account", account);
-            } catch (Exception e) {
-                // No account found for the approved customer, which is a possible state.
-            }
-        });
-        
-        return "admin/application-details";
+    // --- The rest of the controller methods are correct and do not need changes ---
+
+    @GetMapping("/customer/{id}")
+    public String customerDetails(@PathVariable Long id, Model model) {
+        Customer customer = customerService.findCustomerById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid customer Id:" + id));
+        model.addAttribute("customer", customer);
+        try {
+            AccountDTO account = accountClient.getAccountByCustomerId(id);
+            model.addAttribute("account", account);
+        } catch (Exception e) {
+            // No account found, which is a valid state.
+        }
+        return "admin/customer-details";
     }
     
-    @PostMapping("/application/{id}/verify")
-    public String verifyKycApplication(@PathVariable("id") Long applicationId, @RequestParam boolean approved, @RequestParam(required = false) String rejectionReason, RedirectAttributes redirectAttributes) {
+    @PostMapping("/customer/{id}/verify")
+    public String verifyCustomerKyc(@PathVariable Long id, @RequestParam boolean approved, RedirectAttributes redirectAttributes) {
         try {
-            kycService.processKycApplication(applicationId, approved, rejectionReason);
-            String status = approved ? "approved and promoted" : "rejected";
-            redirectAttributes.addFlashAttribute("message", "Application " + applicationId + " has been " + status + ".");
+            kycService.verifyKyc(id, approved);
+            String status = approved ? "approved" : "rejected";
+            redirectAttributes.addFlashAttribute("message", "KYC for customer " + id + " has been " + status + ".");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error processing application: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error processing KYC: " + e.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+
+    @PostMapping("/customer/{id}/delete")
+    public String deleteCustomer(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            customerService.deleteCustomer(id);
+            redirectAttributes.addFlashAttribute("message", "Customer " + id + " has been deleted successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting customer: " + e.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+
+    @GetMapping("/customer/{id}/edit")
+    public String showUpdateForm(@PathVariable("id") long id, Model model) {
+        Customer customer = customerService.findCustomerById(id)
+          .orElseThrow(() -> new IllegalArgumentException("Invalid customer Id:" + id));
+        model.addAttribute("customer", customer);
+        return "admin/edit-customer";
+    }
+
+    @PostMapping("/customer/{id}/edit")
+    public String updateCustomer(@PathVariable("id") long id, @ModelAttribute("customer") Customer customer, RedirectAttributes redirectAttributes) {
+        try {
+            customerService.updateCustomer(id, customer);
+            redirectAttributes.addFlashAttribute("message", "Customer " + id + " has been updated successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating customer: " + e.getMessage());
         }
         return "redirect:/admin/dashboard";
     }

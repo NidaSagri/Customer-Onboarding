@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration - Step 3</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container" style="max-width: 800px;">
+    <div class="logo-container">
+        <img src="https://img.etimg.com/thumb/width-1200,height-900,imgsize-8519,resizemode-75,msid-114568605/markets/stocks/news/oracle-financial-services-shares-in-focus-after-q2-profit-jumps-38-yoy-to-rs-578-crore.jpg" alt="OFSS Bank Logo" />
+    </div>
+    <h2>New Account Application (Step 3 of 3)</h2>
+    <h3>Account & Login Details</h3>
+
+    <form th:action="@{/ui/register/finish}" th:object="${kycApplication}" method="post">
+        <!-- --- THE FIX: Add hidden fields for data from Step 1 & 2 --- -->
+        <!-- Step 1 Data -->
+        <input type="hidden" th:field="*{fullName}" />
+        <input type="hidden" th:field="*{dob}" />
+        <input type="hidden" th:field="*{gender}" />
+        <input type="hidden" th:field="*{maritalStatus}" />
+        <input type="hidden" th:field="*{fathersName}" />
+        <input type="hidden" th:field="*{nationality}" />
+        <input type="hidden" th:field="*{profession}" />
+        <input type="hidden" th:field="*{address}" />
+        <!-- Step 2 Data -->
+        <input type="hidden" th:field="*{email}" />
+        <input type="hidden" th:field="*{phone}" />
+        <input type="hidden" th:field="*{pan}" />
+        <input type="hidden" th:field="*{aadhaar}" />
+        <input type="hidden" th:field="*{aadhaarPhotoBase64}" />
+        <input type="hidden" th:field="*{panPhotoBase64}" />
+        <input type="hidden" th:field="*{passportPhotoBase64}" />
+
+        <!-- Now the visible fields for Step 3 -->
+        <div class="form-group">
+            <label for="requestedAccountType">Account Type to Open:</label>
+            <select id="requestedAccountType" th:field="*{requestedAccountType}" required>
+                <option value="" disabled selected>-- Select --</option>
+                <option value="SAVINGS">Savings Account</option>
+                <option value="CURRENT">Current Account</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="username">Create a Username:</label>
+            <input type="text" id="username" th:field="*{username}" required />
+        </div>
+        <div class="form-group">
+            <label for="password">Create a Password:</label>
+            <input type="password" id="password" th:field="*{password}" required />
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <a th:href="@{/ui/register/documents}" class="btn btn-secondary">Back</a>
+            <button type="submit" class="btn btn-success">Submit Application</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

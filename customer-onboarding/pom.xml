@@ -1,34 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
+    <!-- Defines the Spring Boot version for the entire project -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    
+
+    <!-- Project Coordinates -->
     <groupId>com.onboarding</groupId>
     <artifactId>onboarding-microservices</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>onboarding-microservices</name>
     <description>Parent project for onboarding microservices</description>
-    <packaging>pom</packaging> <!-- IMPORTANT -->
+    <packaging>pom</packaging> <!-- This MUST be 'pom' for a parent project -->
 
+    <!-- Shared Properties -->
     <properties>
         <java.version>17</java.version>
         <spring-cloud.version>2023.0.1</spring-cloud.version>
     </properties>
 
+    <!-- Declares all the sub-modules that are part of this project -->
     <modules>
         <module>eureka-server</module>
         <module>api-gateway</module>
         <module>customer-service</module>
         <module>account-service</module>
+        <module>kyc-service</module>
     </modules>
 
+    <!-- Manages the versions of Spring Cloud dependencies for all child modules -->
     <dependencyManagement>
         <dependencies>
             <dependency>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration - Step 2</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .upload-group { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .upload-group .form-group { flex-grow: 1; margin-bottom: 0; }
+        .image-preview { width: 100px; height: 60px; border: 1px solid var(--border-color); background-size: cover; background-position: center; border-radius: 8px; background-color: #f8f9fa; }
+        .passport-preview { height: 120px; }
+    </style>
+</head>
+<body>
+<div class="container" style="max-width: 800px;">
+    <div class="logo-container">
+        <img src="https://img.etimg.com/thumb/width-1200,height-900,imgsize-8519,resizemode-75,msid-114568605/markets/stocks/news/oracle-financial-services-shares-in-focus-after-q2-profit-jumps-38-yoy-to-rs-578-crore.jpg" alt="OFSS Bank Logo" />
+    </div>
+    <h2>New Account Application (Step 2 of 3)</h2>
+    <h3>Identity & Document Upload</h3>
+
+    <form th:action="@{/ui/register/documents}" th:object="${kycApplication}" method="post">
+        <!-- --- THE FIX: Add hidden fields for data from Step 1 --- -->
+        <input type="hidden" th:field="*{fullName}" />
+        <input type="hidden" th:field="*{dob}" />
+        <input type="hidden" th:field="*{gender}" />
+        <input type="hidden" th:field="*{maritalStatus}" />
+        <input type="hidden" th:field="*{fathersName}" />
+        <input type="hidden" th:field="*{nationality}" />
+        <input type="hidden" th:field="*{profession}" />
+        <input type="hidden" th:field="*{address}" />
+
+        <!-- Contact & Identity -->
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" th:field="*{email}" required />
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone:</label>
+            <input type="tel" id="phone" th:field="*{phone}" required />
+        </div>
+        <!-- Document Uploads -->
+        <div class="upload-group">
+            <div class="form-group"><label for="aadhaar">Aadhaar Number:</label><input type="text" id="aadhaar" th:field="*{aadhaar}" required /></div>
+            <div><label>Aadhaar Photo:</label><input type="file" class="form-control" id="aadhaarFile" accept="image/*" required onchange="handleFileUpload(event, 'aadhaarPhotoBase64', 'aadhaarPreview')"><div id="aadhaarPreview" class="image-preview"></div></div>
+        </div>
+        <div class="upload-group">
+            <div class="form-group"><label for="pan">PAN Number:</label><input type="text" id="pan" th:field="*{pan}" required /></div>
+            <div><label>PAN Photo:</label><input type="file" class="form-control" id="panFile" accept="image/*" required onchange="handleFileUpload(event, 'panPhotoBase64', 'panPreview')"><div id="panPreview" class="image-preview"></div></div>
+        </div>
+        <div class="form-group">
+             <label>Passport Photo:</label>
+             <input type="file" class="form-control" id="passportFile" accept="image/*" required onchange="handleFileUpload(event, 'passportPhotoBase64', 'passportPreview')">
+             <div id="passportPreview" class="image-preview passport-preview"></div>
+        </div>
+        
+        <!-- Hidden fields for Base64 data -->
+        <input type="hidden" id="aadhaarPhotoBase64" th:field="*{aadhaarPhotoBase64}" />
+        <input type="hidden" id="panPhotoBase64" th:field="*{panPhotoBase64}" />
+        <input type="hidden" id="passportPhotoBase64" th:field="*{passportPhotoBase64}" />
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <a th:href="@{/ui/register}" class="btn btn-secondary">Back</a>
+            <button type="submit" class="btn">Next: Finalize</button>
+        </div>
+    </form>
+</div>
+<script>
+function handleFileUpload(event, hiddenInputId, previewId) {
+    const file = event.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64String = e.target.result;
+        document.getElementById(hiddenInputId).value = base64String;
+        document.getElementById(previewId).style.backgroundImage = `url('${base64String}')`;
+    };
+    reader.readAsDataURL(file);
+}
+</script>
+</body>
+</html>

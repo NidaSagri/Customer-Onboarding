@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration - Step 1</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container" style="max-width: 800px;">
+    <div class="logo-container">
+        <img src="https://img.etimg.com/thumb/width-1200,height-900,imgsize-8519,resizemode-75,msid-114568605/markets/stocks/news/oracle-financial-services-shares-in-focus-after-q2-profit-jumps-38-yoy-to-rs-578-crore.jpg" alt="OFSS Bank Logo" />
+    </div>
+    <h2>New Account Application (Step 1 of 3)</h2>
+    <h3>Personal Information</h3>
+
+    <form th:action="@{/ui/register/personal-info}" th:object="${kycApplication}" method="post">
+        <div class="form-group">
+            <label for="fullName">Full Name:</label>
+            <input type="text" id="fullName" th:field="*{fullName}" required />
+        </div>
+        <div class="form-group">
+            <label for="dob">Date of Birth:</label>
+            <input type="date" id="dob" th:field="*{dob}" required />
+        </div>
+        <div class="form-group">
+            <label for="gender">Gender:</label>
+            <select id="gender" th:field="*{gender}" required>
+                <option value="" disabled selected>-- Select --</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="maritalStatus">Marital Status:</label>
+            <select id="maritalStatus" th:field="*{maritalStatus}" required>
+                <option value="" disabled selected>-- Select --</option>
+                <option value="Single">Single</option>
+                <option value="Married">Married</option>
+                <option value="Divorced">Divorced</option>
+                <option value="Widowed">Widowed</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="fathersName">Father's Full Name:</label>
+            <input type="text" id="fathersName" th:field="*{fathersName}" required />
+        </div>
+        <div class="form-group">
+            <label for="nationality">Nationality:</label>
+            <input type="text" id="nationality" th:field="*{nationality}" required />
+        </div>
+        <div class="form-group">
+            <label for="profession">Profession:</label>
+            <input type="text" id="profession" th:field="*{profession}" required />
+        </div>
+        <div class="form-group">
+            <label for="address">Full Address:</label>
+            <input type="text" id="address" th:field="*{address}" required />
+        </div>
+        <div style="text-align: right;">
+            <button type="submit" class="btn">Next: Upload Documents</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

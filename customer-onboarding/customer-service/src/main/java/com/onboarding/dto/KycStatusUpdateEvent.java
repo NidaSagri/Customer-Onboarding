@@ -4,7 +4,6 @@ public class KycStatusUpdateEvent {
     private String customerName;
     private String customerEmail;
     private String kycStatus; // "VERIFIED" or "REJECTED"
-    private String rejectionReason; // <-- NEW FIELD
     
     // New fields for the approval email
     private String accountNumber;
@@ -14,8 +13,6 @@ public class KycStatusUpdateEvent {
     public KycStatusUpdateEvent() {}
 
     // Getters and Setters for all fields...
-    public String getRejectionReason() { return rejectionReason; }
-    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
     public String getCustomerName() { return customerName; }
     public void setCustomerName(String customerName) { this.customerName = customerName; }
     public String getCustomerEmail() { return customerEmail; }

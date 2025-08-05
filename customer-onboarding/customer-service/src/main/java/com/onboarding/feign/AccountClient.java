@@ -1,6 +1,5 @@
 package com.onboarding.feign;
 
-import com.onboarding.dto.AccountCreationRequest;
 import com.onboarding.dto.AccountDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -12,9 +11,6 @@ import java.util.Map;
 
 @FeignClient(name = "ACCOUNT-SERVICE")
 public interface AccountClient {
-	
-	 @PostMapping("/api/internal/accounts/create-and-activate")
-	    AccountDTO createActiveAccount(@RequestBody AccountCreationRequest request);
 
     // ... existing methods ...
     @PostMapping("/api/internal/accounts/create-inactive")
