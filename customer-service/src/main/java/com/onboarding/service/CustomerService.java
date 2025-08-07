@@ -47,7 +47,7 @@ public class CustomerService {
 
     @Transactional
     public Customer createApprovedCustomer(KycApplicationDataDTO kycData) {
-        // Validation remains the same...
+        // Validation for uniqueness
         if (customerRepository.findByPan(kycData.getPan()).isPresent() ||
             userRepository.findByUsername(kycData.getUsername()).isPresent() ||
             customerRepository.findByAadhaar(kycData.getAadhaar()).isPresent()) {
@@ -56,7 +56,7 @@ public class CustomerService {
 
         Customer customer = new Customer();
         
-        // *** THE FIX: Map ALL fields from the DTO ***
+        // --- Map ALL fields from the DTO to the Customer entity ---
         customer.setFullname(kycData.getFullName());
         customer.setDob(kycData.getDob());
         customer.setGender(kycData.getGender());
@@ -70,25 +70,23 @@ public class CustomerService {
         customer.setPan(kycData.getPan());
         customer.setAadhaar(kycData.getAadhaar());
         
-        // This was one of the missing fields
+        // Map the previously missing fields
         customer.setRequestedAccountType(kycData.getRequestedAccountType());
-        
-        // These service preferences were also missing
         customer.setNetBankingEnabled(kycData.getNetBankingEnabled());
         customer.setDebitCardIssued(kycData.getDebitCardIssued());
         customer.setChequeBookIssued(kycData.getChequeBookIssued());
         
-        // Set final status
+        // Set final status and flags
         customer.setKycStatus(KycStatus.VERIFIED);
         customer.setPanLinked(true);
         customer.setAadhaarLinked(true);
 
-        // ... Saving customer and creating user remains the same ...
         Customer savedCustomer = customerRepository.save(customer);
-                
+
+        // Create the associated User entity for login
         User user = new User();
         user.setUsername(kycData.getUsername());
-        user.setPassword(kycData.getPassword()); 
+        user.setPassword(kycData.getPassword()); // Password is pre-encrypted
         
         Role customerRole = roleRepository.findByName("ROLE_CUSTOMER")
                 .orElseThrow(() -> new RuntimeException("CRITICAL: ROLE_CUSTOMER not found."));
@@ -98,6 +96,8 @@ public class CustomerService {
 
         return savedCustomer;
     }
+    
+    
     private void validateUniqueness(FullRegistrationRequest request) {
         userRepository.findByUsername(request.getUsername()).ifPresent(u -> {
             throw new CustomerAlreadyExistsException("Username '" + request.getUsername() + "' is already taken.");

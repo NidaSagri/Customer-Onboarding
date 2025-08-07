@@ -26,6 +26,9 @@ public interface AccountClient {
 
     @GetMapping("/api/internal/accounts/by-customer-ids")
     List<AccountDTO> getAccountsByCustomerIds(@RequestParam("customerIds") List<Long> customerIds);
+    
+    @GetMapping("/api/internal/accounts/by-kyc-id/{kycId}")
+    AccountDTO getAccountByKycApplicationId(@PathVariable("kycId") Long kycId);
 
     @GetMapping("/api/internal/accounts/created-between")
     List<AccountDTO> getAccountsCreatedBetween(

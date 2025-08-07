@@ -12,4 +12,5 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByCustomerId(Long customerId);
     List<Account> findByCustomerIdIn(List<Long> customerIds);
     List<Account> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+    Optional<Account> findByKycApplicationId(Long kycApplicationId);
 }

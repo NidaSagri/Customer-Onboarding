@@ -31,6 +31,9 @@ public class Account {
     private String nomineeName;
     private String debitCardLast4Digits;
     private Integer chequeBookLeaves;
+    
+    @Column(unique = true)
+    private Long kycApplicationId;
 
     // *** THE FIX IS HERE ***
     @Column(columnDefinition = "NUMBER(1,0) DEFAULT 0")
@@ -84,4 +87,7 @@ public class Account {
     public void setChequeBookIssued(Boolean chequeBookIssued) { this.chequeBookIssued = chequeBookIssued; }
     public Integer getChequeBookLeaves() { return chequeBookLeaves; }
     public void setChequeBookLeaves(Integer chequeBookLeaves) { this.chequeBookLeaves = chequeBookLeaves; }
+    // --- ADD GETTER AND SETTER FOR THE NEW FIELD ---
+    public Long getKycApplicationId() { return kycApplicationId; }
+    public void setKycApplicationId(Long kycApplicationId) { this.kycApplicationId = kycApplicationId; }
 }

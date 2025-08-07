@@ -52,6 +52,15 @@ public class InternalApiController {
         
         return dto;
     }
+    
+ // *** ADD THIS NEW ENDPOINT ***
+    @GetMapping("/by-kyc-id/{kycId}")
+    public ResponseEntity<AccountDTO> getAccountByKycApplicationId(@PathVariable Long kycId) {
+        return accountRepository.findByKycApplicationId(kycId)
+                .map(this::convertToDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 
     // ... The rest of the controller remains the same ...
     @PostMapping("/create-inactive")

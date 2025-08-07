@@ -50,8 +50,12 @@ public class KycProcessingService {
             LOGGER.info("Approving KYC for application ID {}.", applicationId);
             application.setKycStatus(KycStatus.VERIFIED);
             
+            // --- ORCHESTRATION WORKFLOW ---
             // 1. Send COMPLETE data to customer-service to create the permanent Customer and User
             CustomerDTO newCustomer = createApprovedCustomerInCustomerService(application);
+            
+            // *** NEW STEP: Link the application to the new customer ID ***
+            application.setCustomerId(newCustomer.getId());
             
             // 2. Create Inactive Account in account-service using the new customer's ID
             createInactiveAccountInAccountService(newCustomer.getId(), application);
@@ -76,15 +80,12 @@ public class KycProcessingService {
     }
 
     /**
-     * *** THIS IS THE FIRST FIX ***
-     * This method now maps ALL fields from the KycApplication to the DTO.
+     * Helper method to map ALL data from the KycApplication entity to the DTO
+     * that will be sent to the customer-service.
      */
- // In KycProcessingService.java
-
     private CustomerDTO createApprovedCustomerInCustomerService(KycApplication app) {
         KycApplicationDataDTO kycData = new KycApplicationDataDTO();
         
-        // This method now maps the service preferences as well
         kycData.setId(app.getId());
         kycData.setFullName(app.getFullName());
         kycData.setDob(app.getDob());
@@ -99,35 +100,33 @@ public class KycProcessingService {
         kycData.setPan(app.getPan());
         kycData.setAadhaar(app.getAadhaar());
         kycData.setUsername(app.getUsername());
-        kycData.setPassword(app.getPassword());
-        
-        // *** THE FIX: Add missing fields to the DTO ***
+        kycData.setPassword(app.getPassword()); // Send the encrypted password
         kycData.setRequestedAccountType(app.getRequestedAccountType());
-        kycData.setNetBankingEnabled(app.getNetBankingEnabled()); // Assuming this field exists on KycApplication now
-        kycData.setDebitCardIssued(app.getDebitCardIssued());   // Assuming this field exists on KycApplication now
-        kycData.setChequeBookIssued(app.getChequeBookIssued()); // Assuming this field exists on KycApplication now
+        kycData.setNetBankingEnabled(app.getNetBankingEnabled());
+        kycData.setDebitCardIssued(app.getDebitCardIssued());
+        kycData.setChequeBookIssued(app.getChequeBookIssued());
         
         return customerClient.createApprovedCustomer(kycData);
     }
     
+    /**
+     * Helper method to create the data map for the account-service call.
+     * It now correctly sends the service preferences chosen by the user.
+     */
     private void createInactiveAccountInAccountService(Long customerId, KycApplication app) {
         Map<String, Object> creationData = new HashMap<>();
         creationData.put("customerId", customerId);
         creationData.put("accountType", app.getRequestedAccountType());
-
-        // *** THE FIX: Use the actual values from the application ***
         creationData.put("netBankingEnabled", app.getNetBankingEnabled());
         creationData.put("debitCardIssued", app.getDebitCardIssued());
         creationData.put("chequeBookIssued", app.getChequeBookIssued());
+        creationData.put("kycApplicationId", app.getId());
         
-        // This part requires adding a Nominee object to your KycApplication entity
-        // For now, let's keep it as-is until you add that feature.
-        creationData.put("nomineeRegistered", false); 
+        // This part requires adding a Nominee object to KycApplication.
+        // It remains a placeholder until that feature is fully implemented.
+        creationData.put("nomineeRegistered", false);
         creationData.put("nomineeName", null);
 
         accountClient.createInactiveAccount(creationData);
     }
-    
-    
-  
 }

@@ -2,16 +2,9 @@ package com.onboarding.dto;
 
 import java.time.LocalDate;
 
-/**
- * DTO to receive a complete, approved KYC application from the kyc-service.
- * This DTO now contains all fields necessary to create a full Customer record.
- */
 public class KycApplicationDataDTO {
 
-    // I've renamed this from kycApplicationId to 'id' to match the KycApplication entity
-    private Long id; 
-
-    // --- Personal Information ---
+    private Long id;
     private String fullName;
     private LocalDate dob;
     private String gender;
@@ -20,19 +13,20 @@ public class KycApplicationDataDTO {
     private String nationality;
     private String profession;
     private String address;
-
-    // --- Contact & Identity Information ---
     private String email;
     private String phone;
     private String pan;
     private String aadhaar;
-
-    // --- Account & Login Choices ---
     private String username;
-    private String password; // This password comes pre-encrypted from the kyc-service
+    private String password;
 
-    // --- Getters and Setters for all fields ---
+    // *** ADDED FIELDS TO MATCH THE SOURCE DTO ***
+    private String requestedAccountType;
+    private Boolean netBankingEnabled;
+    private Boolean debitCardIssued;
+    private Boolean chequeBookIssued;
 
+    // --- Getters and Setters for ALL fields ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getFullName() { return fullName; }
@@ -63,4 +57,12 @@ public class KycApplicationDataDTO {
     public void setUsername(String username) { this.username = username; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+    public String getRequestedAccountType() { return requestedAccountType; }
+    public void setRequestedAccountType(String requestedAccountType) { this.requestedAccountType = requestedAccountType; }
+    public Boolean getNetBankingEnabled() { return netBankingEnabled; }
+    public void setNetBankingEnabled(Boolean netBankingEnabled) { this.netBankingEnabled = netBankingEnabled; }
+    public Boolean getDebitCardIssued() { return debitCardIssued; }
+    public void setDebitCardIssued(Boolean debitCardIssued) { this.debitCardIssued = debitCardIssued; }
+    public Boolean getChequeBookIssued() { return chequeBookIssued; }
+    public void setChequeBookIssued(Boolean chequeBookIssued) { this.chequeBookIssued = chequeBookIssued; }
 }

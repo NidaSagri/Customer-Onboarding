@@ -15,79 +15,71 @@ public class KycApplication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // --- Personal Information (from Step 1 of registration) ---
+    // --- Personal & Contact Info (Existing fields are correct) ---
     @NotBlank(message = "Full name is mandatory")
     private String fullName;
-    
     @NotNull(message = "Date of birth is mandatory")
     private LocalDate dob;
-    
     @NotBlank(message = "Gender is mandatory")
     private String gender;
-    
     @NotBlank(message = "Marital status is mandatory")
     private String maritalStatus;
-    
     @NotBlank(message = "Father's name is mandatory")
     private String fathersName;
-    
     @NotBlank(message = "Nationality is mandatory")
     private String nationality;
-    
     @NotBlank(message = "Profession is mandatory")
     private String profession;
-    
     @NotBlank(message = "Address is mandatory")
     private String address;
-
-    // --- Contact & Identity Information ---
     @NotBlank(message = "Email is mandatory")
     @Email(message = "Email should be valid")
     @Column(unique = true)
     private String email;
-
     @NotBlank(message = "Phone number is mandatory")
     @Pattern(regexp = "^\\d{10}$", message = "Phone number must be 10 digits")
     private String phone;
-    
     @NotBlank(message = "PAN is mandatory")
     @Column(unique = true)
     private String pan;
-
     @NotBlank(message = "Aadhaar is mandatory")
     @Column(unique = true)
     private String aadhaar;
 
-    // --- Document Uploads (from Step 2 of registration) ---
-    @Lob
-    @Column(name = "aadhaar_photo_base64", columnDefinition = "CLOB")
+    // --- Document Uploads (Existing fields are correct) ---
+    @Lob @Column(name = "aadhaar_photo_base64", columnDefinition = "CLOB")
     private String aadhaarPhotoBase64;
-
-    @Lob
-    @Column(name = "pan_photo_base64", columnDefinition = "CLOB")
+    @Lob @Column(name = "pan_photo_base64", columnDefinition = "CLOB")
     private String panPhotoBase64;
-
-    @Lob
-    @Column(name = "passport_photo_base64", columnDefinition = "CLOB")
+    @Lob @Column(name = "passport_photo_base64", columnDefinition = "CLOB")
     private String passportPhotoBase64;
 
-    // --- Account & Login Choices (from Step 3 of registration) ---
+    // --- Account & Login Choices (Existing fields are correct) ---
     @NotBlank(message = "Account type selection is mandatory")
     private String requestedAccountType;
-
     @NotBlank(message = "Username is mandatory")
     @Column(unique = true)
     private String username;
-
     @NotBlank(message = "Password is mandatory")
-    private String password; // Will be stored encrypted
+    private String password;
+
+    // *** NEWLY ADDED FIELDS FOR SERVICE PREFERENCES ***
+    @Column(columnDefinition = "NUMBER(1,0) DEFAULT 0")
+    private Boolean netBankingEnabled = false;
+    @Column(columnDefinition = "NUMBER(1,0) DEFAULT 0")
+    private Boolean debitCardIssued = false;
+    @Column(columnDefinition = "NUMBER(1,0) DEFAULT 0")
+    private Boolean chequeBookIssued = false;
+
+    // *** NEWLY ADDED FIELD TO LINK TO FINAL CUSTOMER RECORD ***
+    private Long customerId;
 
     // --- Internal Status ---
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private KycStatus kycStatus = KycStatus.PENDING;
 
-    // Getters and Setters for all fields...
+    // --- Getters and Setters for all fields (including new ones) ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getFullName() { return fullName; }
@@ -128,4 +120,12 @@ public class KycApplication {
     public void setPassword(String password) { this.password = password; }
     public KycStatus getKycStatus() { return kycStatus; }
     public void setKycStatus(KycStatus kycStatus) { this.kycStatus = kycStatus; }
+    public Boolean getNetBankingEnabled() { return netBankingEnabled; }
+    public void setNetBankingEnabled(Boolean netBankingEnabled) { this.netBankingEnabled = netBankingEnabled; }
+    public Boolean getDebitCardIssued() { return debitCardIssued; }
+    public void setDebitCardIssued(Boolean debitCardIssued) { this.debitCardIssued = debitCardIssued; }
+    public Boolean getChequeBookIssued() { return chequeBookIssued; }
+    public void setChequeBookIssued(Boolean chequeBookIssued) { this.chequeBookIssued = chequeBookIssued; }
+    public Long getCustomerId() { return customerId; }
+    public void setCustomerId(Long customerId) { this.customerId = customerId; }
 }
