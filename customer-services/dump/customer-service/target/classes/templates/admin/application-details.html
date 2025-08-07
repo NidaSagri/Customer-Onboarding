@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Application Details</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style> /* Page-specific styles */ </style>
+</head>
+<!-- THE FIX IS HERE: Add th:object to the body or a main div -->
+<body th:object="${application}">
+<div class="container" style="max-width: 1200px; padding-top: 2rem;">
+    <div class="logo-container">
+        <img src="https://img.etimg.com/thumb/width-1200,height-900,imgsize-8519,resizemode-75,msid-114568605/markets/stocks/news/oracle-financial-services-shares-in-focus-after-q2-profit-jumps-38-yoy-to-rs-578-crore.jpg" alt="OFSS Bank Logo" />
+    </div>
+    <header class="dashboard-header" style="background: none; box-shadow: none; padding: 0; margin-bottom: 2rem;">
+        <h1 style="text-align: center; width: 100%;">Review Application for <span th:text="*{fullName}"></span></h1>
+        <a th:href="@{/admin/dashboard}" class="btn btn-secondary" style="white-space: nowrap;">Back to Dashboard</a>
+    </header>
+
+    <div class="details-grid">
+        <!-- Now we can use the asterisk syntax *{...} -->
+        <div class="details-section">
+            <h3>Personal Information</h3>
+            <p><strong>Application ID:</strong> <span th:text="*{id}"></span></p>
+            <p><strong>Full Name:</strong> <span th:text="*{fullName}"></span></p>
+            <p><strong>Father's Name:</strong> <span th:text="*{fatherName}"></span></p>
+            <p><strong>Mother's Name:</strong> <span th:text="*{motherName}"></span></p>
+            <p><strong>Date of Birth:</strong> <span th:text="${#temporals.format(application.dob, 'dd-MMM-yyyy')}"></span></p>
+            <p><strong>Gender:</strong> <span th:text="*{gender}"></span></p>
+            <p><strong>Marital Status:</strong> <span th:text="*{maritalStatus}"></span></p>
+            <p><strong>Nationality:</strong> <span th:text="*{nationality}"></span></p>
+            <p><strong>Profession:</strong> <span th:text="*{profession}"></span></p>
+        </div>
+        <div class="details-section">
+            <h3>Identity & Contact</h3>
+            <p><strong>Email:</strong> <span th:text="*{email}"></span></p>
+            <p><strong>Phone:</strong> <span th:text="*{phone}"></span></p>
+            <p><strong>Address:</strong> <span th:text="*{address}"></span></p>
+            <p><strong>PAN:</strong> <span th:text="*{pan}"></span></p>
+            <p><strong>Aadhaar:</strong> <span th:text="*{aadhaar}"></span></p>
+            <p><strong>Proposed Username:</strong> <span th:text="*{username}"></span></p>
+            <p><strong>Proposed Account Type:</strong> <span th:text="*{preferredAccountType}"></span></p>
+            <p><strong>Application Status:</strong> <span class="badge" th:classappend="*{kycStatus?.name()}" th:text="*{kycStatus}"></span></p>
+             <!-- Show account info if it exists (for already processed applications) -->
+            <div th:if="${account != null}"><hr>
+                <h4>Promoted Account Details</h4>
+                <p><strong>Account Number:</strong> <span th:text="${account.accountNumber}"></span></p>
+                <p><strong>Account Status:</strong> <span class="badge" th:classappend="${account.accountStatus}" th:text="${account.accountStatus}"></span></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="details-section">
+        <h3>Uploaded Documents (Click to View)</h3>
+        <div class="doc-viewer">
+            <div class="doc-container" th:if="*{aadhaarPhotoBase64}"><h4 style="margin-bottom: 10px;">Aadhaar Card</h4><img th:src="*{aadhaarPhotoBase64}" alt="Aadhaar Photo" onclick="openModal(this.src)"/></div>
+            <div class="doc-container" th:if="*{panPhotoBase64}"><h4 style="margin-bottom: 10px;">PAN Card</h4><img th:src="*{panPhotoBase64}" alt="PAN Photo" onclick="openModal(this.src)"/></div>
+            <div class="doc-container" th:if="*{passportPhotoBase64}"><h4 style="margin-bottom: 10px;">Passport Photo</h4><img th:src="*{passportPhotoBase64}" alt="Passport Photo" onclick="openModal(this.src)"/></div>
+        </div>
+    </div>
+    
+    <div th:if="*{kycStatus?.name() == 'PENDING'}" class="action-form" style="justify-content: center; padding-top: 2rem;">
+        <form th:action="@{/admin/application/{id}/verify(id=*{id})}" method="post" style="display:inline;">
+             <input type="hidden" name="approved" value="true" />
+             <button type="submit" class="btn btn-success">Approve Application</button>
+        </form>
+        <button type="button" class="btn btn-danger" onclick="openRejectionModal()">Reject Application</button>
+    </div>
+</div>
+
+<!-- Modals and JavaScript (unchanged) -->
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>My Passbook</title>
+    <!-- Import a monospaced font to mimic a passbook -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <!-- All styles for the passbook are self-contained here -->
+    <style>
+        /* Override body styles for this specific page */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #e0e0e0; /* A neutral gray background to make the passbook pop */
+            overflow: hidden;
+        }
+
+        /* The container that provides 3D perspective for the flip animation */
+        .passbook-container {
+            perspective: 2500px;
+        }
+
+        .passbook {
+            width: 90vw;
+            max-width: 1200px;
+            height: 600px;
+            display: flex;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s ease-in-out;
+        }
+
+        .page {
+            width: 50%;
+            height: 100%;
+            padding: 2.5rem;
+            box-sizing: border-box;
+            background-color: #fdfdfd;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .left-page {
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+            border-right: 1px solid #ddd;
+        }
+        
+        .right-page {
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        /* The cover that flips open */
+        .cover {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            top: 0;
+            right: 0;
+            background-color: #800000; /* Classic maroon passbook color */
+            background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+            transform-origin: left;
+            transition: transform 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            transform-style: preserve-3d;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        /* When the passbook is "open", the cover flips */
+        .passbook.open .cover {
+            transform: rotateY(-180deg);
+        }
+        
+        .cover-front, .cover-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; /* Hides the back side of an element when it's rotated */
+        }
+        
+        .cover-front {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .cover-front img {
+            max-width: 150px;
+            border-radius: 8px;
+            filter: brightness(0) invert(1); /* Makes the logo white */
+        }
+
+        .cover-front h2 {
+            color: #fff;
+            font-family: 'Roboto Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .cover-back {
+            background-color: #fdfdfd; /* The inside of the cover is paper-colored */
+            transform: rotateY(180deg);
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+        
+        /* Passbook content styling */
+        .passbook-content h3 {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--primary-red);
+            text-transform: uppercase;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .passbook-content p {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+        .passbook-content strong {
+            display: inline-block;
+            width: 150px; /* Aligns the colons */
+            color: #555;
+        }
+
+        /* Document viewer styling for inside the passbook */
+        .doc-viewer-passbook { display: flex; gap: 15px; margin-top: 2rem; }
+        .doc-container-passbook { text-align: center; }
+        .doc-container-passbook img {
+             max-width: 120px; height: 80px; object-fit: cover;
+             border: 1px solid #ccc; border-radius: 4px; cursor: pointer;
+        }
+
+        .logout-button-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- This container holds the entire passbook and its animation context -->
+<div class="passbook-container">
+    <div id="passbook" class="passbook">
+        
+        <!-- The static left page of the passbook -->
+        <div class="page left-page">
+            <div class="passbook-content">
+                <h3>Customer Profile</h3>
+                <p><strong>Name</strong>: <span th:text="${customer.fullName}"></span></p>
+                <p><strong>Email</strong>: <span th:text="${customer.email}"></span></p>
+                <p><strong>Phone</strong>: <span th:text="${customer.phone}"></span></p>
+                <p><strong>Address</strong>: <span th:text="${customer.address}"></span></p>
+                <p><strong>D.O.B</strong>: <span th:text="${#temporals.format(customer.dob, 'dd-MMM-yyyy')}"></span></p>
+                <hr style="border: 1px dashed #ccc; margin: 1.5rem 0;">
+                <p><strong>PAN</strong>: <span th:text="${customer.pan}"></span></p>
+                <p><strong>Aadhaar</strong>: <span th:text="${customer.aadhaar}"></span></p>
+                <p><strong>KYC Status</strong>: <span class="badge" th:classappend="${customer.kycStatus.name()}" th:text="${customer.kycStatus}"></span></p>
+            </div>
+        </div>
+
+        <!-- The right page, which is initially covered -->
+        <div class="page right-page">
+             <div class="passbook-content">
+                <h3>Account Details</h3>
+                <div th:if="${account != null and account.accountStatus == 'ACTIVE'}">
+                    <p><strong>Account #</strong>: <span th:text="${account.accountNumber}"></span></p>
+                    <p><strong>Acc. Type</strong>: <span th:text="${account.accountType}"></span></p>
+                    <p><strong>IFSC Code</strong>: <span th:text="${account.ifscCode ?: 'OFSS0001234'}"></span></p>
+                    <p><strong>Balance</strong>: <strong style="font-size: 1.2em; width: auto;">₹<span th:text="${#numbers.formatDecimal(account.balance, 1, 'COMMA', 2, 'POINT')}"></span></strong></p>
+                </div>
+                <div th:unless="${account != null and account.accountStatus == 'ACTIVE'}">
+                    <p>Account is not yet active.</p>
+                </div>
+
+                <h3 style="margin-top: 2rem;">My Documents</h3>
+                <div class="doc-viewer-passbook">
+                    <div class="doc-container-passbook" th:if="${customer.aadhaarPhotoBase64}">
+                        <img th:src="${customer.aadhaarPhotoBase64}" alt="Aadhaar" onclick="openModal(this.src)"/>
+                    </div>
+                     <div class="doc-container-passbook" th:if="${customer.panPhotoBase64}">
+                        <img th:src="${customer.panPhotoBase64}" alt="PAN" onclick="openModal(this.src)"/>
+                    </div>
+                     <div class="doc-container-passbook" th:if="${customer.passportPhotoBase64}">
+                        <img th:src="${customer.passportPhotoBase64}" alt="Photo" onclick="openModal(this.src)"/>
+                    </div>
+                </div>
+             </div>
+        </div>
+
+        <!-- The animated cover page -->
+        <div class="cover">
+            <div class="cover-front">
+                <img src="https://img.etimg.com/thumb/width-1200,height-900,imgsize-8519,resizemode-75,msid-114568605/markets/stocks/news/oracle-financial-services-shares-in-focus-after-q2-profit-jumps-38-yoy-to-rs-578-crore.jpg" alt="OFSS Bank Logo"/>
+                <h2>OFSS Bank Passbook</h2>
+            </div>
+            <div class="cover-back"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Logout button positioned independently -->
+<div class="logout-button-container">
+    <form th:action="@{/logout}" method="post">
+        <button type="submit" class="btn btn-logout">Logout</button>
+    </form>
+</div>
+
+<!-- Modal for viewing documents -->
+<div id="imageModal" class="modal-overlay" onclick="closeModal()">
+    <span class="modal-close">×</span>
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <img id="modalImage" src="" alt="Document View"/>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"></script>
+<script>
+    // Trigger the passbook opening animation on page load
+    window.addEventListener('load', () => {
+        const passbook = document.getElementById('passbook');
+        if(passbook) {
+            // A short delay makes the animation feel more deliberate
+            setTimeout(() => {
+                passbook.classList.add('open');
+            }, 200);
+        }
+    });
+
+    // Logic for the document viewer modal
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        if (modal && modalImage) {
+            const panzoom = Panzoom(modalImage, { maxScale: 5, canvas: true });
+            modal.addEventListener('wheel', panzoom.zoomWithWheel);
+            window.openModal = function(src) { panzoom.reset(); modalImage.src = src; modal.classList.add('active'); }
+            window.closeModal = function() { modal.classList.remove('active'); }
+        }
+    });
+</script>
+
+</body>
+</html>
