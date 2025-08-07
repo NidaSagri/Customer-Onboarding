@@ -30,7 +30,7 @@ public class CustomerUIController {
         KycApplication application = kycApplicationRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("Could not find application for logged in user: " + username));
             
-        model.addAttribute("application", application);
+        model.addAttribute("kycApp", application);
         
         // This is where we will add logic for account details IF the status is VERIFIED
         // For now, we will just show the application status.

@@ -43,20 +43,22 @@ public class CustomerService {
     /**
      * Handles the complete, multi-page customer registration process.
      */
+ // In CustomerService.java
+
     @Transactional
     public Customer createApprovedCustomer(KycApplicationDataDTO kycData) {
-        // 1. Check for existing customer to prevent duplicates (important for race conditions)
+        // Validation remains the same...
         if (customerRepository.findByPan(kycData.getPan()).isPresent() ||
             userRepository.findByUsername(kycData.getUsername()).isPresent() ||
             customerRepository.findByAadhaar(kycData.getAadhaar()).isPresent()) {
             throw new CustomerAlreadyExistsException("A customer or user with these unique details already exists.");
         }
 
-        // 2. Create and populate the Customer entity from the DTO
         Customer customer = new Customer();
+        
+        // *** THE FIX: Map ALL fields from the DTO ***
         customer.setFullname(kycData.getFullName());
         customer.setDob(kycData.getDob());
-        // ... map ALL other fields from KycApplicationDataDTO to the Customer entity ...
         customer.setGender(kycData.getGender());
         customer.setMaritalStatus(kycData.getMaritalStatus());
         customer.setFathersName(kycData.getFathersName());
@@ -68,22 +70,28 @@ public class CustomerService {
         customer.setPan(kycData.getPan());
         customer.setAadhaar(kycData.getAadhaar());
         
-        // Set status to VERIFIED
+        // This was one of the missing fields
+        customer.setRequestedAccountType(kycData.getRequestedAccountType());
+        
+        // These service preferences were also missing
+        customer.setNetBankingEnabled(kycData.getNetBankingEnabled());
+        customer.setDebitCardIssued(kycData.getDebitCardIssued());
+        customer.setChequeBookIssued(kycData.getChequeBookIssued());
+        
+        // Set final status
         customer.setKycStatus(KycStatus.VERIFIED);
-        customer.setPanLinked(true); // Since it's approved
+        customer.setPanLinked(true);
         customer.setAadhaarLinked(true);
 
-        // 3. Save the customer
+        // ... Saving customer and creating user remains the same ...
         Customer savedCustomer = customerRepository.save(customer);
-
-        // 4. Create the associated User entity for login
-        Role customerRole = roleRepository.findByName("ROLE_CUSTOMER")
-                .orElseThrow(() -> new RuntimeException("CRITICAL: ROLE_CUSTOMER not found."));
                 
         User user = new User();
         user.setUsername(kycData.getUsername());
-        // The password from kyc-service is already encrypted, so we save it directly
         user.setPassword(kycData.getPassword()); 
+        
+        Role customerRole = roleRepository.findByName("ROLE_CUSTOMER")
+                .orElseThrow(() -> new RuntimeException("CRITICAL: ROLE_CUSTOMER not found."));
         user.setRoles(Set.of(customerRole));
         user.setCustomer(savedCustomer);
         userRepository.save(user);

@@ -79,9 +79,12 @@ public class KycProcessingService {
      * *** THIS IS THE FIRST FIX ***
      * This method now maps ALL fields from the KycApplication to the DTO.
      */
+ // In KycProcessingService.java
+
     private CustomerDTO createApprovedCustomerInCustomerService(KycApplication app) {
         KycApplicationDataDTO kycData = new KycApplicationDataDTO();
         
+        // This method now maps the service preferences as well
         kycData.setId(app.getId());
         kycData.setFullName(app.getFullName());
         kycData.setDob(app.getDob());
@@ -96,32 +99,35 @@ public class KycProcessingService {
         kycData.setPan(app.getPan());
         kycData.setAadhaar(app.getAadhaar());
         kycData.setUsername(app.getUsername());
-        kycData.setPassword(app.getPassword()); // Send the encrypted password
+        kycData.setPassword(app.getPassword());
+        
+        // *** THE FIX: Add missing fields to the DTO ***
+        kycData.setRequestedAccountType(app.getRequestedAccountType());
+        kycData.setNetBankingEnabled(app.getNetBankingEnabled()); // Assuming this field exists on KycApplication now
+        kycData.setDebitCardIssued(app.getDebitCardIssued());   // Assuming this field exists on KycApplication now
+        kycData.setChequeBookIssued(app.getChequeBookIssued()); // Assuming this field exists on KycApplication now
         
         return customerClient.createApprovedCustomer(kycData);
     }
     
-    /**
-     * *** THIS IS THE SECOND FIX ***
-     * This method now maps the service preferences and nominee details from the KycApplication.
-     */
     private void createInactiveAccountInAccountService(Long customerId, KycApplication app) {
         Map<String, Object> creationData = new HashMap<>();
         creationData.put("customerId", customerId);
         creationData.put("accountType", app.getRequestedAccountType());
 
-        // We were missing these fields in the previous version
-        // Assuming your KycApplication entity has these boolean fields
-        creationData.put("netBankingEnabled", true); // Defaulting to true, change if you have the field on the form
-        creationData.put("debitCardIssued", true);   // Defaulting to true
-        creationData.put("chequeBookIssued", false);  // Defaulting to false
-
-        // Check if a nominee was provided in the application
-        // Assuming your KycApplication does NOT have a nominee object, we default it.
-        // If it DOES, you would use: creationData.put("nomineeRegistered", app.getNominee() != null);
-        creationData.put("nomineeRegistered", false);
-        creationData.put("nomineeName", null); // Set to app.getNominee().getName() if it exists
+        // *** THE FIX: Use the actual values from the application ***
+        creationData.put("netBankingEnabled", app.getNetBankingEnabled());
+        creationData.put("debitCardIssued", app.getDebitCardIssued());
+        creationData.put("chequeBookIssued", app.getChequeBookIssued());
+        
+        // This part requires adding a Nominee object to your KycApplication entity
+        // For now, let's keep it as-is until you add that feature.
+        creationData.put("nomineeRegistered", false); 
+        creationData.put("nomineeName", null);
 
         accountClient.createInactiveAccount(creationData);
     }
+    
+    
+  
 }
