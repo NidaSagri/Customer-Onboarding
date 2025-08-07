@@ -74,8 +74,17 @@ public class RegistrationController {
     }
 
     @PostMapping("/step3")
-    public String processStep3_Services(@ModelAttribute("registrationRequest") FullRegistrationRequest request) {
-        // No complex validation here, just proceed
+    public String processStep3_Services(
+            @ModelAttribute("registrationRequest") FullRegistrationRequest request,
+            @RequestParam(value = "netBankingEnabled", required = false) String netBankingEnabled,
+            @RequestParam(value = "debitCardIssued", required = false) String debitCardIssued,
+            @RequestParam(value = "chequeBookIssued", required = false) String chequeBookIssued) {
+        
+        // If the checkbox was checked, the string value will be "on". If not, it will be null.
+        request.setNetBankingEnabled(netBankingEnabled != null);
+        request.setDebitCardIssued(debitCardIssued != null);
+        request.setChequeBookIssued(chequeBookIssued != null);
+
         return "redirect:/ui/register/documents"; // Proceed to step 4
     }
 

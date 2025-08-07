@@ -78,6 +78,10 @@ public class KycApplication {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private KycStatus kycStatus = KycStatus.PENDING;
+    
+ // *** NEW RELATIONSHIP MAPPING ***
+    @OneToOne(mappedBy = "kycApplication", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private KycNominee kycNominee;
 
     // --- Getters and Setters for all fields (including new ones) ---
     public Long getId() { return id; }
@@ -128,4 +132,16 @@ public class KycApplication {
     public void setChequeBookIssued(Boolean chequeBookIssued) { this.chequeBookIssued = chequeBookIssued; }
     public Long getCustomerId() { return customerId; }
     public void setCustomerId(Long customerId) { this.customerId = customerId; }
+    public KycNominee getKycNominee() { return kycNominee; }
+
+    public void setKycNominee(KycNominee kycNominee) {
+        if (kycNominee == null) {
+            if (this.kycNominee != null) {
+                this.kycNominee.setKycApplication(null);
+            }
+        } else {
+            kycNominee.setKycApplication(this);
+        }
+        this.kycNominee = kycNominee;
+    }
 }

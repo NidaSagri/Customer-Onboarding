@@ -1,12 +1,10 @@
 package com.onboarding.service;
 
-import com.onboarding.dto.AccountDTO;
-import com.onboarding.dto.CustomerDTO;
-import com.onboarding.dto.KycApplicationDataDTO;
-import com.onboarding.dto.KycStatusUpdateEvent;
+import com.onboarding.dto.*;
 import com.onboarding.feign.AccountClient;
 import com.onboarding.feign.CustomerClient;
 import com.onboarding.model.KycApplication;
+import com.onboarding.model.KycNominee;
 import com.onboarding.model.KycStatus;
 import com.onboarding.repository.KycApplicationRepository;
 import org.slf4j.Logger;
@@ -50,20 +48,12 @@ public class KycProcessingService {
             LOGGER.info("Approving KYC for application ID {}.", applicationId);
             application.setKycStatus(KycStatus.VERIFIED);
             
-            // --- ORCHESTRATION WORKFLOW ---
-            // 1. Send COMPLETE data to customer-service to create the permanent Customer and User
-            CustomerDTO newCustomer = createApprovedCustomerInCustomerService(application);
-            
-            // *** NEW STEP: Link the application to the new customer ID ***
+            CustomerCreationResponseDTO newCustomer = createApprovedCustomerInCustomerService(application);
             application.setCustomerId(newCustomer.getId());
             
-            // 2. Create Inactive Account in account-service using the new customer's ID
             createInactiveAccountInAccountService(newCustomer.getId(), application);
-
-            // 3. Activate the Account in account-service
             AccountDTO activeAccount = accountClient.activateAccount(newCustomer.getId());
 
-            // 4. Populate event for the success email
             emailEvent.setKycStatus("VERIFIED");
             emailEvent.setAccountNumber(activeAccount.getAccountNumber());
             emailEvent.setAccountType(activeAccount.getAccountType());
@@ -79,11 +69,7 @@ public class KycProcessingService {
         kafkaProducerService.sendKycUpdateNotification(emailEvent);
     }
 
-    /**
-     * Helper method to map ALL data from the KycApplication entity to the DTO
-     * that will be sent to the customer-service.
-     */
-    private CustomerDTO createApprovedCustomerInCustomerService(KycApplication app) {
+    private CustomerCreationResponseDTO createApprovedCustomerInCustomerService(KycApplication app) {
         KycApplicationDataDTO kycData = new KycApplicationDataDTO();
         
         kycData.setId(app.getId());
@@ -100,33 +86,62 @@ public class KycProcessingService {
         kycData.setPan(app.getPan());
         kycData.setAadhaar(app.getAadhaar());
         kycData.setUsername(app.getUsername());
-        kycData.setPassword(app.getPassword()); // Send the encrypted password
+        kycData.setPassword(app.getPassword());
         kycData.setRequestedAccountType(app.getRequestedAccountType());
         kycData.setNetBankingEnabled(app.getNetBankingEnabled());
         kycData.setDebitCardIssued(app.getDebitCardIssued());
         kycData.setChequeBookIssued(app.getChequeBookIssued());
         
+        if (app.getPassportPhotoBase64() != null) { kycData.setPassportPhotoBase64(extractBase64Data(app.getPassportPhotoBase64())); }
+        if (app.getPanPhotoBase64() != null) {
+            kycData.setPanPhotoBase64(extractBase64Data(app.getPanPhotoBase64()));
+            kycData.setPanPhotoContentType(extractMimeType(app.getPanPhotoBase64()));
+        }
+        if (app.getAadhaarPhotoBase64() != null) {
+            kycData.setAadhaarPhotoBase64(extractBase64Data(app.getAadhaarPhotoBase64()));
+            kycData.setAadhaarPhotoContentType(extractMimeType(app.getAadhaarPhotoBase64()));
+        }
+        
+        if (app.getKycNominee() != null) {
+            KycNominee kycNominee = app.getKycNominee();
+            NomineeDTO nomineeDTO = new NomineeDTO();
+            nomineeDTO.setName(kycNominee.getName());
+            nomineeDTO.setMobile(kycNominee.getMobile());
+            nomineeDTO.setAddress(kycNominee.getAddress());
+            nomineeDTO.setAadhaarNumber(kycNominee.getAadhaarNumber());
+            kycData.setNominee(nomineeDTO);
+        }
+        
         return customerClient.createApprovedCustomer(kycData);
     }
     
-    /**
-     * Helper method to create the data map for the account-service call.
-     * It now correctly sends the service preferences chosen by the user.
-     */
     private void createInactiveAccountInAccountService(Long customerId, KycApplication app) {
         Map<String, Object> creationData = new HashMap<>();
         creationData.put("customerId", customerId);
+        creationData.put("kycApplicationId", app.getId());
         creationData.put("accountType", app.getRequestedAccountType());
         creationData.put("netBankingEnabled", app.getNetBankingEnabled());
         creationData.put("debitCardIssued", app.getDebitCardIssued());
         creationData.put("chequeBookIssued", app.getChequeBookIssued());
-        creationData.put("kycApplicationId", app.getId());
         
-        // This part requires adding a Nominee object to KycApplication.
-        // It remains a placeholder until that feature is fully implemented.
-        creationData.put("nomineeRegistered", false);
-        creationData.put("nomineeName", null);
+        if (app.getKycNominee() != null) {
+            creationData.put("nomineeRegistered", true);
+            creationData.put("nomineeName", app.getKycNominee().getName());
+        } else {
+            creationData.put("nomineeRegistered", false);
+            creationData.put("nomineeName", null);
+        }
 
         accountClient.createInactiveAccount(creationData);
+    }
+    
+    private String extractBase64Data(String dataUri) {
+        if (dataUri == null || !dataUri.contains(",")) return null;
+        return dataUri.split(",")[1];
+    }
+    
+    private String extractMimeType(String dataUri) {
+        if (dataUri == null || !dataUri.contains(",")) return null;
+        return dataUri.split(",")[0].split(":")[1].split(";")[0];
     }
 }

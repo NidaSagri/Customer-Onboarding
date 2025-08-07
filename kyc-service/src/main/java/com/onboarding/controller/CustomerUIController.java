@@ -1,7 +1,7 @@
 package com.onboarding.controller;
 
 import com.onboarding.dto.AccountDTO;
-import com.onboarding.feign.AccountClient; // Make sure this is imported
+import com.onboarding.feign.AccountClient;
 import com.onboarding.model.KycApplication;
 import com.onboarding.repository.KycApplicationRepository;
 import org.slf4j.Logger;
@@ -19,13 +19,8 @@ public class CustomerUIController {
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomerUIController.class);
 
     private final KycApplicationRepository kycApplicationRepository;
-    // *** STEP 1: Declare the Feign Client as a field ***
     private final AccountClient accountClient;
 
-    /**
-     * *** STEP 2: Add AccountClient to the constructor ***
-     * Spring will see this and inject the Feign client bean.
-     */
     public CustomerUIController(KycApplicationRepository kycApplicationRepository, AccountClient accountClient) {
         this.kycApplicationRepository = kycApplicationRepository;
         this.accountClient = accountClient;
@@ -39,17 +34,18 @@ public class CustomerUIController {
             
         model.addAttribute("kycApp", application);
         
-        // Fetch account details if KYC is verified
-        if (application.getKycStatus() != null && "VERIFIED".equals(application.getKycStatus().name())) {
+        // Fetch account details ONLY if KYC is verified and the customerId has been set
+        if (application.getCustomerId() != null && "VERIFIED".equals(application.getKycStatus().name())) {
             try {
-                LOGGER.info("KYC is verified for user {}. Fetching account details for KYC application ID: {}", username, application.getId());
-                // *** STEP 3: Call the method on the injected instance, not the interface ***
-                AccountDTO account = accountClient.getAccountByKycApplicationId(application.getId());
+                LOGGER.info("KYC is verified for user {}. Fetching account details for customer ID: {}", username, application.getCustomerId());
+                
+                // *** THE FIX: Use the customerId from the application to fetch the account ***
+                AccountDTO account = accountClient.getAccountByCustomerId(application.getCustomerId());
                 model.addAttribute("account", account);
+                
                 LOGGER.info("Successfully fetched account details for user {}", username);
             } catch (Exception e) {
                 LOGGER.error("Error fetching account details for user {}: {}", username, e.getMessage());
-                // Handle case where account might not be found (e.g., Feign client error)
                 model.addAttribute("accountError", "Could not retrieve your approved account details at this time.");
             }
         }
