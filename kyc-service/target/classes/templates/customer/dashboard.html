@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Application Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .status-banner {
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #fff;
+        }
+        .status-banner.PENDING { background-color: var(--pending-yellow); color: var(--text-dark); }
+        .status-banner.VERIFIED { background-color: var(--success-green); }
+        .status-banner.REJECTED { background-color: var(--primary-red); }
+        .status-banner h2 { margin: 0; color: inherit; }
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        .details-card {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+        .details-card h4 {
+            margin-top: 0;
+            color: var(--primary-red);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="page-container" style="max-width: 1000px;">
+
+    <header class="dashboard-header" style="justify-content: space-between;">
+        <h1>Welcome, <span th:text="${kycApp.fullName}"></span>!</h1>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-logout">Logout</button>
+        </form>
+    </header>
+
+    <main>
+        <!-- Status Banner -->
+        <!-- *** THE FIX is applied here using the '?.' safe navigation operator *** -->
+        <div class="status-banner" th:classappend="${kycApp.kycStatus?.name()}">
+            <h2>Your Application Status: <span th:text="${kycApp.kycStatus?.name() ?: 'UNKNOWN'}"></span></h2>
+            <p th:if="${kycApp.kycStatus?.name() == 'PENDING'}">Your application is currently under review by our team. You will be notified via email upon completion.</p>
+            <p th:if="${kycApp.kycStatus?.name() == 'VERIFIED'}">Congratulations! Your account has been approved and is now active.</p>
+            <p th:if="${kycApp.kycStatus?.name() == 'REJECTED'}">We're sorry, your application could not be approved at this time. Please check your email for details.</p>
+        </div>
+
+        <!-- Edit Button (Only shows if status is PENDING) -->
+        <div th:if="${kycApp.kycStatus?.name() == 'PENDING'}" style="text-align: center; margin-bottom: 2rem;">
+            <p>You can modify your submitted details as long as your application is pending.</p>
+            <a th:href="@{/customer/edit}" class="btn">Edit My Application</a>
+        </div>
+        
+         <!-- Approved Account Info (Only shows if status is VERIFIED) -->
+        <div th:if="${kycApp.kycStatus?.name() == 'VERIFIED'}" class="details-card">
+            <h4>Your New Account Details</h4>
+            <p><strong>Account Number:</strong> <span>[Will be displayed here]</span></p>
+            <p><strong>Account Type:</strong> <span th:text="${kycApp.requestedAccountType}"></span></p>
+            <p><strong>IFSC Code:</strong> <span>[Will be displayed here]</span></p>
+            <p>You can now access your full banking dashboard through the main portal.</p>
+        </div>
+
+
+        <!-- Application Details Summary -->
+        <div class="details-grid">
+            <div class="details-card">
+                <h4>Personal Information</h4>
+                <p><strong>Full Name:</strong> <span th:text="${kycApp.fullName}"></span></p>
+                <p><strong>Email:</strong> <span th:text="${kycApp.email}"></span></p>
+                <p><strong>Phone:</strong> <span th:text="${kycApp.phone}"></span></p>
+            </div>
+            <div class="details-card">
+                <h4>Identity Information</h4>
+                <p><strong>PAN:</strong> <span th:text="${kycApp.pan}"></span></p>
+                <p><strong>Aadhaar:</strong> <span th:text="${kycApp.aadhaar}"></span></p>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
