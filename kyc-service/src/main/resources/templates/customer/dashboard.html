@@ -28,6 +28,9 @@
         <!-- Status Banner -->
         <div class="status-banner" th:classappend="${kycApp.kycStatus?.name()}">
             <h2>Your Application Status: <span th:text="${kycApp.kycStatus?.name() ?: 'UNKNOWN'}"></span></h2>
+            <p th:if="${kycApp.kycStatus?.name() == 'PENDING'}">Your application is currently under review by our team. You will be notified via email upon completion.</p>
+            <p th:if="${kycApp.kycStatus?.name() == 'VERIFIED'}">Congratulations! Your account has been approved and is now active.</p>
+            <p th:if="${kycApp.kycStatus?.name() == 'REJECTED'}">We're sorry, your application could not be approved at this time. Please check your email for details.</p>
         </div>
         
         <!-- Approved Account Info (Shows if VERIFIED) -->
@@ -44,7 +47,8 @@
                 <div>
                     <p><strong>IFSC Code:</strong> <span th:text="${account.ifscCode}"></span></p>
                     <p><strong>MICR Code:</strong> <span th:text="${account.micrCode}"></span></p>
-                    <p><strong>Mode of Operation:</strong> <span th:text="${account.modeOperation}"></span></p>
+                    <!-- *** THE FIX IS HERE: Corrected modeOperation to modeOfOperation *** -->
+                    <p><strong>Mode of Operation:</strong> <span th:text="${account.modeOfOperation}"></span></p>
                     <p><strong>Net Banking:</strong> <span th:text="${account.netBankingEnabled ? 'Enabled' : 'Disabled'}"></span></p>
                     <p><strong>Debit Card:</strong> <span th:text="${account.debitCardIssued ? 'Issued (ends in ' + account.debitCardLast4Digits + ')' : 'Not Issued'}"></span></p>
                     <p><strong>Cheque Book:</strong> <span th:text="${account.chequeBookIssued ? 'Issued (' + account.chequeBookLeaves + ' leaves)' : 'Not Issued'}"></span></p>
@@ -70,5 +74,6 @@
             </div>
         </div>
     </main>
+
 </body>
 </html>
