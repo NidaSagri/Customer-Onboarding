@@ -37,6 +37,7 @@ public class AdminApiController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+<<<<<<< HEAD
     
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Long id, Model model) {
@@ -51,6 +52,8 @@ public class AdminApiController {
 //        customerService.updateCustomer(customer);
 //        return "redirect:http://localhost:8080/admin/dashboard";
 //    }
+=======
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
 
     private CustomerDTO convertToDto(Customer customer) {
         CustomerDTO dto = new CustomerDTO();

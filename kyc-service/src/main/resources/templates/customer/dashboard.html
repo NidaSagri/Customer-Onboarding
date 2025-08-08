@@ -47,12 +47,20 @@
                 <div>
                     <p><strong>IFSC Code:</strong> <span th:text="${account.ifscCode}"></span></p>
                     <p><strong>MICR Code:</strong> <span th:text="${account.micrCode}"></span></p>
+<<<<<<< HEAD
+=======
+                    <!-- *** THE FIX IS HERE: Corrected modeOperation to modeOfOperation *** -->
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
                     <p><strong>Mode of Operation:</strong> <span th:text="${account.modeOfOperation}"></span></p>
                     <p><strong>Net Banking:</strong> <span th:text="${account.netBankingEnabled ? 'Enabled' : 'Disabled'}"></span></p>
                     <p><strong>Debit Card:</strong> <span th:text="${account.debitCardIssued ? 'Issued (ends in ' + account.debitCardLast4Digits + ')' : 'Not Issued'}"></span></p>
                     <p><strong>Cheque Book:</strong> <span th:text="${account.chequeBookIssued ? 'Issued (' + account.chequeBookLeaves + ' leaves)' : 'Not Issued'}"></span></p>
                 </div>
             </div>
+<<<<<<< HEAD
+=======
+            <p style="text-align: center; margin-top: 1rem;">You can now access your full banking dashboard through the main portal.</p>
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
         </div>
         <div th:if="${accountError}" class="alert alert-danger" th:text="${accountError}"></div>
 

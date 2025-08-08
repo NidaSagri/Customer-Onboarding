@@ -1,7 +1,10 @@
 package com.onboarding.controller;
 
 import com.onboarding.model.KycApplication; // Import the correct local entity
+<<<<<<< HEAD
 import com.onboarding.model.KycStatus;
+=======
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
 import com.onboarding.repository.KycApplicationRepository; // Import the local repository
 import com.onboarding.service.KycProcessingService;
 import org.springframework.data.domain.Page;
@@ -31,15 +34,26 @@ public class AdminController {
                                  @RequestParam(defaultValue = "0") int page,
                                  @RequestParam(defaultValue = "10") int size,
                                  @RequestParam(required = false) String keyword) {
+<<<<<<< HEAD
 
         Pageable pageable = PageRequest.of(page, size);
         Page<KycApplication> applicationPage;
 
         if (StringUtils.hasText(keyword)) {
+=======
+        
+        Pageable pageable = PageRequest.of(page, size);
+        // Fetch a page of KycApplication entities directly from the local database
+        Page<KycApplication> applicationPage;
+
+        if (StringUtils.hasText(keyword)) {
+            // We will add this search method to the repository next
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
             applicationPage = kycApplicationRepository.findByFullNameContainingIgnoreCase(keyword, pageable);
         } else {
             applicationPage = kycApplicationRepository.findAll(pageable);
         }
+<<<<<<< HEAD
 
         // 👉 Fetch counts for the analytics cards
         long totalApplications = kycApplicationRepository.count();
@@ -59,6 +73,16 @@ public class AdminController {
     }
 
 
+=======
+        
+        // Pass the Page of KycApplication objects to the view
+        model.addAttribute("applications", applicationPage);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("searchActive", StringUtils.hasText(keyword));
+        return "admin/dashboard";
+    }
+
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
     @GetMapping("/customer/{id}")
     public String customerDetails(@PathVariable Long id, Model model) {
         // Fetch the KycApplication by its ID from the local database

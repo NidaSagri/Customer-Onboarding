@@ -1,8 +1,11 @@
 package com.onboarding.repository;
 
 import com.onboarding.model.KycApplication;
+<<<<<<< HEAD
 import com.onboarding.model.KycStatus;
 
+=======
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,6 +29,7 @@ public interface KycApplicationRepository extends JpaRepository<KycApplication, 
 
     // This method is for the Admin Dashboard search bar.
     Page<KycApplication> findByFullNameContainingIgnoreCase(String fullName, Pageable pageable);
+<<<<<<< HEAD
     
     // Total applications
     long count(); 
@@ -33,4 +37,6 @@ public interface KycApplicationRepository extends JpaRepository<KycApplication, 
     // Used for counting specific statuses
 	long countByKycStatus(KycStatus status); 
 
+=======
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
 }

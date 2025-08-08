@@ -34,7 +34,11 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     List<Customer> findTop5ByKycStatusOrderByIdDesc(KycStatus kycStatus);
     
     // --- Method for internal API (no longer needed, but we can keep it for now) ---
+<<<<<<< HEAD
      Optional<Customer> findByKycApplicationId(Long kycApplicationId);
+=======
+    // Optional<Customer> findByKycApplicationId(Long kycId);
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
     
     // The old search method is now replaced by the more powerful `searchByKeyword`
     // Page<Customer> findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String fullName, String email, Pageable pageable);

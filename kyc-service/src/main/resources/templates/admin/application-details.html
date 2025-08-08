@@ -27,11 +27,16 @@
 
     <header class="dashboard-header" style="justify-content:space-between; margin-bottom: 2rem;">
         <h1 th:if="${kycApp}">Review Application for <span th:text="${kycApp.fullName}"></span></h1>
+<<<<<<< HEAD
         <div>
         <a th:href="@{/admin/dashboard}" class="btn btn-secondary">Back to Dashboard</a>
         <a th:if="${kycApp.customerId != null}" th:href="@{/api/admin/customers/edit/{id}(id=${kycApp.customerId})}" class="btn btn-primary">Edit This Customer</a>
    		</div>    
    	</header>
+=======
+        <a th:href="@{/admin/dashboard}" class="btn btn-secondary">Back to Dashboard</a>
+    </header>
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
 
     <main class="main-content" style="background:none; box-shadow:none; padding:0;">
         <div th:if="${kycApp}" class="form-grid">
@@ -50,7 +55,11 @@
             </div>
             
             <div class="review-section">
+<<<<<<< HEAD
                 <h4>Contact & Account Details</h4>
+=======
+                <h4>Contact & Account Choices</h4>
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
                 <p class="review-item"><strong>Email:</strong> <span th:text="${kycApp.email}"></span></p>
                 <p class="review-item"><strong>Phone:</strong> <span th:text="${kycApp.phone}"></span></p>
                 <p class="review-item"><strong>PAN:</strong> <span th:text="${kycApp.pan}"></span></p>
@@ -58,6 +67,7 @@
                 <hr>
                 <p class="review-item"><strong>Username Choice:</strong> <span th:text="${kycApp.username}"></span></p>
                 <p class="review-item"><strong>Requested Account:</strong> <span th:text="${kycApp.requestedAccountType}"></span></p>
+<<<<<<< HEAD
                 <p class="review-item"><strong>Account Number:</strong> <span th:text="${kycApp.requestedAccountType}"></span></p>
                 <p class="review-item"><strong>KYC Status:</strong> <span class="badge" th:classappend="${kycApp.kycStatus}" th:text="${kycApp.kycStatus}"></span></p>
                 <hr>
@@ -72,6 +82,9 @@
 				</p>
 
                 
+=======
+                <p class="review-item"><strong>KYC Status:</strong> <span class="badge" th:classappend="${kycApp.kycStatus}" th:text="${kycApp.kycStatus}"></span></p>
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
             </div>
 
             <div class="review-section full-width">

@@ -80,6 +80,7 @@ public class RegistrationService {
      * *** THE FIX IS APPLIED HERE ***
      * This method now maps the service preference booleans from the request DTO to the entity.
      */
+<<<<<<< HEAD
 //    private void mapRequestToApplication(KycApplication app, FullRegistrationRequest req) {
 //        // Map all personal, contact, and login details
 //        app.setFullName(req.getFullname());
@@ -103,6 +104,8 @@ public class RegistrationService {
 //        app.setChequeBookIssued(req.isChequeBookIssued());
 //        // Note: Password is set separately after encoding in the main method
 //    }
+=======
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
     private void mapRequestToApplication(KycApplication app, FullRegistrationRequest req) {
         // Map all personal, contact, and login details
         app.setFullName(req.getFullname());
@@ -112,24 +115,37 @@ public class RegistrationService {
         app.setAddress(req.getAddress());
         app.setGender(req.getGender());
         app.setMaritalStatus(req.getMaritalStatus());
+<<<<<<< HEAD
         
         // *** ADD THIS LINE ***
         app.setFathersName(req.getFathersName());
         
+=======
+        app.setFathersName(req.getFathersName());
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
         app.setNationality(req.getNationality());
         app.setProfession(req.getProfession());
         app.setPan(req.getPan());
         app.setAadhaar(req.getAadhaar());
         app.setUsername(req.getUsername());
+<<<<<<< HEAD
 
         // *** AND ADD THIS LINE ***
+=======
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
         app.setRequestedAccountType(req.getRequestedAccountType());
         
         // Map service preferences
         app.setNetBankingEnabled(req.isNetBankingEnabled());
         app.setDebitCardIssued(req.isDebitCardIssued());
         app.setChequeBookIssued(req.isChequeBookIssued());
+<<<<<<< HEAD
     }
+=======
+        // Note: Password is set separately after encoding in the main method
+    }
+
+>>>>>>> 065167e0c367b236bf857c5e39faaaece78136e7
     // Helper method to create and link the nominee entity
     private void handleNominee(KycApplication application, NomineeDTO nomineeDTO) {
         KycNominee nominee = new KycNominee();
