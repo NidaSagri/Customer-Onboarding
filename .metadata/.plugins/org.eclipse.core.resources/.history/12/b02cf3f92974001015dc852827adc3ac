@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - KYC Applications</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        :root {
+            --primary-red: #d92121;
+            --dark-red: #a31919;
+            --info-blue: #0d6efd;
+        }
+
+        /* General button styling */
+        .btn {
+            background-color: var(--primary-red);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.25rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn:hover {
+            background-color: var(--dark-red);
+        }
+        .btn-secondary {
+            background-color: #ccc;
+            color: #333;
+        }
+
+        .btn-logout {
+            background-color: var(--primary-red);
+            padding: 0.6rem 1.2rem;
+            font-weight: bold;
+        }
+        
+        .analytics-cards {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+.card {
+    flex: 1;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #f1f1f1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    margin-right: 20px;
+}
+
+.card:last-child {
+    margin-right: 0;
+}
+
+.card h3 {
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: #444;
+}
+
+.card p {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+.main-content {
+    width: 2200px; /* Adjust width as needed */
+    margin: 0 auto; /* Horizontally center */
+    padding: 2rem;
+    border: 2px solid black;
+}
+        .search-bar form {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-bar input[type="text"] {
+            padding: 0.6rem 1rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            flex: 1;
+            min-width: 240px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            padding: 0.75rem 1rem;
+            border: 1px solid #e0e0e0;
+            text-align: left;
+        }
+
+        .table thead {
+            background-color: #f0f0f0;
+        }
+
+        .action-cell a {
+            text-decoration: none;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .pagination a {
+            margin: 0 4px;
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            color: #333;
+        }
+
+        .pagination a.current {
+            background-color: var(--primary-red);
+            color: white;
+            border-color: var(--primary-red);
+        }
+
+        .pagination a.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* Chatbot specific styles */
+        .chatbot-fab {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 999;
+            transition: transform 0.2s;
+        }
+
+        .chatbot-fab:hover {
+            transform: scale(1.1);
+        }
+
+        .chat-widget {
+            position: fixed;
+            bottom: 100px;
+            right: 25px;
+            width: 370px;
+            height: 500px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            transition: all 0.3s ease-in-out;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .chat-widget.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .chat-header {
+            background: var(--primary-red);
+            color: white;
+            padding: 1rem;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            font-weight: bold;
+        }
+
+        .chat-body {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .bot-msg, .user-msg {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bot-msg p, .user-msg p {
+            padding: 0.75rem;
+            border-radius: 10px;
+            max-width: 85%;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .bot-msg {
+            align-items: flex-start;
+        }
+
+        .bot-msg p {
+            background: #f1f0f0;
+            border-top-left-radius: 0;
+        }
+
+        .user-msg {
+            align-items: flex-end;
+        }
+
+        .user-msg p {
+            background: var(--info-blue);
+            color: white;
+            border-top-right-radius: 0;
+        }
+
+        .chat-footer {
+            border-top: 1px solid #eee;
+            padding: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-footer input {
+            flex-grow: 1;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            padding: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+
+<header class="dashboard-header">
+    <div class="logo-container">
+        <img th:src="@{https://img.etimg.com/thumb/width-1200,height-900,imgsize-8519,resizemode-75,msid-114568605/markets/stocks/news/oracle-financial-services-shares-in-focus-after-q2-profit-jumps-38-yoy-to-rs-578-crore.jpg}" alt="OFSS Bank Logo" style="max-width: 120px;"/>
+    </div>
+    <h1>Admin Dashboard</h1>
+    <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()">
+        <button type="submit" class="btn btn-logout">Logout</button>
+    </form>
+</header>
+
+
+
+<main class="main-content">
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    
+    <div class="analytics-cards">
+    <div class="card total-apps">
+        <h3>Total Applications</h3>
+        <p th:text="${totalApplications}">0</p>
+    </div>
+    <div class="card pending-apps">
+        <h3>Pending Approvals</h3>
+        <p th:text="${pendingApplications}">0</p>
+    </div>
+    <div class="card verified-apps">
+        <h3>Verified Applications</h3>
+        <p th:text="${verifiedApplications}">0</p>
+    </div>
+</div>
+
+    
+
+    <!-- Search Form -->
+    <div class="search-bar">
+        <form th:action="@{/admin/dashboard}" method="get">
+            <input type="text" name="keyword" th:value="${keyword}" placeholder="Search by Applicant Name..." />
+            <button type="submit" class="btn">Search</button>
+            <a th:if="${searchActive}" th:href="@{/admin/dashboard}" class="btn btn-secondary">Clear</a>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <table class="table">
+        <thead>
+        <tr>
+            <th>App ID</th>
+            <th>Applicant Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>KYC Status</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${applications.empty}">
+            <td colspan="6" style="text-align: center;">No KYC applications found.</td>
+        </tr>
+        <tr th:each="app : ${applications.content}">
+            <td th:text="${app.id}"></td>
+            <td th:text="${app.fullName}"></td>
+            <td th:text="${app.email}"></td>
+            <td th:text="${app.phone}"></td>
+            <td><span class="badge" th:classappend="${app.kycStatus.name()}" th:text="${app.kycStatus}"></span></td>
+            <td class="action-cell">
+                <a th:href="@{/admin/customer/{id}(id=${app.id})}" class="btn btn-sm">Review</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div th:if="${applications.totalPages > 1}" class="pagination" style="margin-top:1.5rem; text-align:center;">
+        <a th:href="@{/admin/dashboard(page=0, keyword=${keyword})}" th:classappend="${applications.first ? 'disabled' : ''}">&laquo;</a>
+        <a th:href="@{/admin/dashboard(page=${applications.number - 1}, keyword=${keyword})}" th:classappend="${applications.first ? 'disabled' : ''}">&lsaquo;</a>
+        <span th:each="i : ${#numbers.sequence(0, applications.totalPages - 1)}" th:if="${i >= applications.number - 2 && i <= applications.number + 2}">
+            <a th:href="@{/admin/dashboard(page=${i}, keyword=${keyword})}" th:classappend="${i == applications.number ? 'current' : ''}" th:text="${i + 1}"></a>
+        </span>
+        <a th:href="@{/admin/dashboard(page=${applications.number + 1}, keyword=${keyword})}" th:classappend="${applications.last ? 'disabled' : ''}">&rsaquo;</a>
+        <a th:href="@{/admin/dashboard(page=${applications.totalPages - 1}, keyword=${keyword})}" th:classappend="${applications.last ? 'disabled' : ''}">&raquo;</a>
+    </div>
+</main>
+
+<!-- CHATBOT UI -->
+<div class="chatbot-fab" id="chatbot-toggle">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="white" class="bi bi-robot" viewBox="0 0 16 16">
+        <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Z"/>
+        <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2V1.866Z"/>
+    </svg>
+</div>
+<div class="chat-widget" id="chat-widget">
+    <div class="chat-header">OFSS AI Assistant</div>
+    <div class="chat-body" id="chat-body">
+        <div class="bot-msg"><p>Hello Admin! How can I help you today? You can ask me to find customers, get dashboard stats, or list accounts by creation date.</p></div>
+    </div>
+    <div class="chat-footer">
+        <input type="text" id="chat-input" placeholder="Ask about applications...">
+        <button class="btn btn-sm" id="send-btn">Send</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const chatbotToggle = document.getElementById('chatbot-toggle');
+        const chatWidget = document.getElementById('chat-widget');
+        const sendBtn = document.getElementById('send-btn');
+        const chatInput = document.getElementById('chat-input');
+        const chatBody = document.getElementById('chat-body');
+        let chatHistory = [];
+
+        chatbotToggle.addEventListener('click', () => chatWidget.classList.toggle('active'));
+
+        async function sendMessage() {
+            const query = chatInput.value.trim();
+            if (!query) return;
+            appendMessage(query, 'user');
+            chatInput.value = '';
+            appendMessage('Thinking...', 'bot', true);
+
+            try {
+                const response = await fetch('http://localhost:5000/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query, role: 'ADMIN', history: chatHistory })
+                });
+                document.getElementById('thinking-msg')?.remove();
+                if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+                const data = await response.json();
+                appendMessage(data.response, 'bot');
+                chatHistory = data.history;
+            } catch (error) {
+                console.error('Chatbot error:', error);
+                document.getElementById('thinking-msg')?.remove();
+                appendMessage('Sorry, an error occurred. Please try again.', 'bot');
+            }
+        }
+
+        function appendMessage(message, type, isThinking = false) {
+            const msgWrapper = document.createElement('div');
+            msgWrapper.className = type === 'user' ? 'user-msg' : 'bot-msg';
+            const p = document.createElement('p');
+            p.innerHTML = message.replace(/\n/g, '<br>');
+            if (isThinking) p.id = 'thinking-msg';
+            msgWrapper.appendChild(p);
+            chatBody.appendChild(msgWrapper);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    });
+</script>
+</body>
+</html>

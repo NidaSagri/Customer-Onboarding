@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>OFSS Bank Registration - Step 1</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container"><img th:src="@{https://img.etimg.com/thumb/width-1200,height-900,imgsize-8519,resizemode-75,msid-114568605/markets/stocks/news/oracle-financial-services-shares-in-focus-after-q2-profit-jumps-38-yoy-to-rs-578-crore.jpg}" alt="OFSS Bank Logo"/></div>
+        <h1>New Account Registration</h1>
+        
+        <!-- Progress Bar -->
+        <div class="progress-bar-container">
+            <ul class="progress-bar">
+                <li class="progress-step active"><div class="progress-step-circle">1</div><div class="progress-step-label">Personal</div></li>
+                <li class="progress-step"><div class="progress-step-circle">2</div><div class="progress-step-label">Nominee</div></li>
+                <li class="progress-step"><div class="progress-step-circle">3</div><div class="progress-step-label">Services</div></li>
+                <li class="progress-step"><div class="progress-step-circle">4</div><div class="progress-step-label">Documents</div></li>
+                <li class="progress-step"><div class="progress-step-circle">5</div><div class="progress-step-label">Finish</div></li>
+            </ul>
+        </div>
+        
+        <h2>Step 1: Personal & Identity Details</h2>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <form th:action="@{/ui/register/step1}" th:object="${registrationRequest}" method="post">
+            <div class="form-grid">
+                <!-- Personal Info -->
+                <div class="form-group"><label for="fullname">Full Name:</label><input type="text" id="fullname" th:field="*{fullname}"/><div th:if="${#fields.hasErrors('fullname')}" th:errors="*{fullname}" class="error-message"></div></div>
+                <div class="form-group"><label for="email">Email:</label><input type="email" id="email" th:field="*{email}"/><div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-message"></div></div>
+                <div class="form-group"><label for="phone">Mobile Number:</label><input type="tel" id="phone" th:field="*{phone}"/><div th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="error-message"></div></div>
+                <div class="form-group"><label for="dob">Date of Birth:</label><input type="date" id="dob" th:field="*{dob}"/><div th:if="${#fields.hasErrors('dob')}" th:errors="*{dob}" class="error-message"></div></div>
+                <div class="form-group"><label for="gender">Gender:</label><select id="gender" th:field="*{gender}"><option value="">-- Select --</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select><div th:if="${#fields.hasErrors('gender')}" th:errors="*{gender}" class="error-message"></div></div>
+                <div class="form-group"><label for="maritalStatus">Marital Status:</label><select id="maritalStatus" th:field="*{maritalStatus}"><option value="">-- Select --</option><option value="Single">Single</option><option value="Married">Married</option><option value="Divorced">Divorced</option><option value="Widowed">Widowed</option></select><div th:if="${#fields.hasErrors('maritalStatus')}" th:errors="*{maritalStatus}" class="error-message"></div></div>
+                <div class="form-group"><label for="fathersName">Father's Name:</label><input type="text" id="fathersName" th:field="*{fathersName}"/><div th:if="${#fields.hasErrors('fathersName')}" th:errors="*{fathersName}" class="error-message"></div></div>
+                <div class="form-group"><label for="nationality">Nationality:</label><input type="text" id="nationality" th:field="*{nationality}"/><div th:if="${#fields.hasErrors('nationality')}" th:errors="*{nationality}" class="error-message"></div></div>
+                <div class="form-group"><label for="profession">Profession:</label><input type="text" id="profession" th:field="*{profession}"/><div th:if="${#fields.hasErrors('profession')}" th:errors="*{profession}" class="error-message"></div></div>
+                
+                <!-- Identity Info -->
+                <div class="form-group"><label for="pan">PAN Number:</label><input type="text" id="pan" th:field="*{pan}"/><div th:if="${#fields.hasErrors('pan')}" th:errors="*{pan}" class="error-message"></div></div>
+                <div class="form-group"><label for="aadhaar">Aadhaar Number:</label><input type="text" id="aadhaar" th:field="*{aadhaar}"/><div th:if="${#fields.hasErrors('aadhaar')}" th:errors="*{aadhaar}" class="error-message"></div></div>
+                
+                <div class="form-group full-width"><label for="address">Full Address:</label><input type="text" id="address" th:field="*{address}"/><div th:if="${#fields.hasErrors('address')}" th:errors="*{address}" class="error-message"></div></div>
+
+                <div class="btn-container">
+                    <span></span> <!-- Empty span for spacing -->
+                    <button type="submit" class="btn">Next: Nominee Details &rarr;</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

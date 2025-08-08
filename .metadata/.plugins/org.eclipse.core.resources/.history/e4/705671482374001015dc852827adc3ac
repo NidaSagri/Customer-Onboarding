@@ -1,0 +1,27 @@
+package com.onboarding.repository;
+
+import com.onboarding.model.KycApplication;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.Optional;
+
+@Repository
+public interface KycApplicationRepository extends JpaRepository<KycApplication, Long> {
+
+    // Methods for validation during registration
+    Optional<KycApplication> findByEmail(String email);
+    Optional<KycApplication> findByPan(String pan);
+    Optional<KycApplication> findByAadhaar(String aadhaar);
+
+    // *** THIS IS THE NEWLY ADDED METHOD ***
+    // Required by CustomerUIController to find the application for the logged-in user.
+    Optional<KycApplication> findByUsername(String username);
+
+    // This method is required by UserDetailsServiceImpl for login with either username or email.
+    Optional<KycApplication> findByUsernameOrEmail(String username, String email);
+
+    // This method is for the Admin Dashboard search bar.
+    Page<KycApplication> findByFullNameContainingIgnoreCase(String fullName, Pageable pageable);
+}

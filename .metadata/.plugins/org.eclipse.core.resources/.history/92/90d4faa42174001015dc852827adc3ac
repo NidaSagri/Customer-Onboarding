@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Application Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .status-banner { padding: 2rem; border-radius: 12px; text-align: center; margin-bottom: 2rem; color: #fff; }
+        .status-banner.PENDING { background-color: var(--pending-yellow); color: var(--text-dark); }
+        .status-banner.VERIFIED { background-color: var(--success-green); }
+        .status-banner.REJECTED { background-color: var(--primary-red); }
+        .status-banner h2 { margin: 0 0 0.5rem 0; color: inherit; }
+        .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
+        .details-card { background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: var(--card-shadow); }
+        .details-card h4 { margin-top: 0; color: var(--primary-red); border-bottom: 1px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .details-card p { display: flex; justify-content: space-between; padding: 0.25rem 0; }
+        .details-card strong { color: #555; margin-right: 1rem; }
+    </style>
+</head>
+<body class="page-container" style="max-width: 1000px;">
+
+    <header class="dashboard-header" style="justify-content: space-between;">
+        <h1>Welcome, <span th:text="${kycApp.fullName}"></span>!</h1>
+        <form th:action="@{/logout}" method="post"><button type="submit" class="btn btn-logout">Logout</button></form>
+    </header>
+
+    <main>
+        <!-- Status Banner -->
+        <div class="status-banner" th:classappend="${kycApp.kycStatus?.name()}">
+            <h2>Your Application Status: <span th:text="${kycApp.kycStatus?.name() ?: 'UNKNOWN'}"></span></h2>
+            <p th:if="${kycApp.kycStatus?.name() == 'PENDING'}">Your application is currently under review by our team. You will be notified via email upon completion.</p>
+            <p th:if="${kycApp.kycStatus?.name() == 'VERIFIED'}">Congratulations! Your account has been approved and is now active.</p>
+            <p th:if="${kycApp.kycStatus?.name() == 'REJECTED'}">We're sorry, your application could not be approved at this time. Please check your email for details.</p>
+        </div>
+        
+        <!-- Approved Account Info (Shows if VERIFIED) -->
+        <div th:if="${kycApp.kycStatus?.name() == 'VERIFIED' and account != null}" class="details-card" style="margin-bottom: 2rem;">
+            <h4>Your New Account Details</h4>
+            <div class="details-grid">
+                <div>
+                    <p><strong>Account Number:</strong> <span th:text="${account.accountNumber}"></span></p>
+                    <p><strong>Account Type:</strong> <span th:text="${account.accountType}"></span></p>
+                    <p><strong>Branch Name:</strong> <span th:text="${account.branchName}"></span></p>
+                    <p><strong>Date of Opening:</strong> <span th:text="${account.dateOfAccountOpening != null ? #temporals.format(account.dateOfAccountOpening, 'dd-MMM-yyyy HH:mm') : 'N/A'}"></span></p>
+                    <p><strong>Nominee Registered:</strong> <span th:text="${account.nomineeRegistered ? 'Yes (' + account.nomineeName + ')' : 'No'}"></span></p>
+                </div>
+                <div>
+                    <p><strong>IFSC Code:</strong> <span th:text="${account.ifscCode}"></span></p>
+                    <p><strong>MICR Code:</strong> <span th:text="${account.micrCode}"></span></p>
+                    <!-- *** THE FIX IS HERE: Corrected modeOperation to modeOfOperation *** -->
+                    <p><strong>Mode of Operation:</strong> <span th:text="${account.modeOfOperation}"></span></p>
+                    <p><strong>Net Banking:</strong> <span th:text="${account.netBankingEnabled ? 'Enabled' : 'Disabled'}"></span></p>
+                    <p><strong>Debit Card:</strong> <span th:text="${account.debitCardIssued ? 'Issued (ends in ' + account.debitCardLast4Digits + ')' : 'Not Issued'}"></span></p>
+                    <p><strong>Cheque Book:</strong> <span th:text="${account.chequeBookIssued ? 'Issued (' + account.chequeBookLeaves + ' leaves)' : 'Not Issued'}"></span></p>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 1rem;">You can now access your full banking dashboard through the main portal.</p>
+        </div>
+        <div th:if="${accountError}" class="alert alert-danger" th:text="${accountError}"></div>
+
+
+        <!-- Personal and Identity Info sections -->
+        <div class="details-grid">
+            <div class="details-card">
+                <h4>Personal Information</h4>
+                <p><strong>Full Name:</strong> <span th:text="${kycApp.fullName}"></span></p>
+                <p><strong>Email:</strong> <span th:text="${kycApp.email}"></span></p>
+                <p><strong>Phone:</strong> <span th:text="${kycApp.phone}"></span></p>
+            </div>
+            <div class="details-card">
+                <h4>Identity Information</h4>
+                <p><strong>PAN:</strong> <span th:text="${kycApp.pan}"></span></p>
+                <p><strong>Aadhaar:</strong> <span th:text="${kycApp.aadhaar}"></span></p>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

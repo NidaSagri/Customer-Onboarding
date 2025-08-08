@@ -1,0 +1,90 @@
+package com.onboarding.controller;
+
+import com.onboarding.model.KycApplication; // Import the correct local entity
+import com.onboarding.repository.KycApplicationRepository; // Import the local repository
+import com.onboarding.service.KycProcessingService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequestMapping("/admin")
+public class AdminController {
+
+    // Dependency is now the local repository, not the Feign client
+    private final KycApplicationRepository kycApplicationRepository;
+    private final KycProcessingService kycProcessingService;
+
+    public AdminController(KycApplicationRepository kycApplicationRepository, KycProcessingService kycProcessingService) {
+        this.kycApplicationRepository = kycApplicationRepository;
+        this.kycProcessingService = kycProcessingService;
+    }
+
+    @GetMapping("/dashboard")
+    public String adminDashboard(Model model,
+                                 @RequestParam(defaultValue = "0") int page,
+                                 @RequestParam(defaultValue = "10") int size,
+                                 @RequestParam(required = false) String keyword) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<KycApplication> applicationPage;
+
+        if (StringUtils.hasText(keyword)) {
+            applicationPage = kycApplicationRepository.findByFullNameContainingIgnoreCase(keyword, pageable);
+        } else {
+            applicationPage = kycApplicationRepository.findAll(pageable);
+        }
+
+        // 👉 Fetch counts for the analytics cards
+        long totalApplications = kycApplicationRepository.count();
+        long pendingApplications = kycApplicationRepository.countByKycStatus("PENDING");
+        long verifiedApplications = kycApplicationRepository.countByKycStatus("VERIFIED");
+
+        model.addAttribute("applications", applicationPage);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("searchActive", StringUtils.hasText(keyword));
+
+        // 👉 Add analytics counts to the model
+        model.addAttribute("totalApplications", totalApplications);
+        model.addAttribute("pendingApplications", pendingApplications);
+        model.addAttribute("verifiedApplications", verifiedApplications);
+
+        return "admin/dashboard";
+    }
+
+
+    @GetMapping("/customer/{id}")
+    public String customerDetails(@PathVariable Long id, Model model) {
+        // Fetch the KycApplication by its ID from the local database
+        KycApplication application = kycApplicationRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid application Id:" + id));
+            
+        // The model attribute name should match what the template expects
+        model.addAttribute("kycApp", application); 
+        
+        // The path to the template was `admin/application-details` in your original code, let's use that
+        return "admin/application-details"; 
+    }
+
+    @PostMapping("/customer/{id}/process")
+    public String processKyc(
+            @PathVariable Long id,
+            @RequestParam boolean approved,
+            @RequestParam(required = false) String rejectionReason,
+            RedirectAttributes redirectAttributes) {
+        try {
+            // The processKyc method in the service already knows it's dealing with an application ID
+            kycProcessingService.processKyc(id, approved, rejectionReason);
+            String status = approved ? "approved" : "rejected";
+            redirectAttributes.addFlashAttribute("message", "Application " + id + " has been successfully " + status + ".");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error processing application: " + e.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+}
